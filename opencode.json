@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": [
+      "./.agents/skills",
+      "./.opencode/skills"
+    ]
+  },
+  "mcp": {
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\jerem\\Desktop\\Facultad\\4to_semestre\\2_-_MARTES_-_Gestion_de_desarrollo_de_software\\FoodStoreRobledo\\food-store"
+      ],
+      "enabled": true
+    },
+    "github": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "enabled": false
+    }
+  }
+}
