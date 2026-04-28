@@ -16,7 +16,7 @@
 
 - [x] 3.1 Implementar `BaseRepository[T]` genérico con operaciones CRUD estandarizadas
 - [x] 3.2 Implementar `UnitOfWork` como context manager (commit/rollback automático) y sesión compartida
-- [ ] 3.3 Documentar convenciones de imports/capas (Router → Service → UoW → Repository → Model)
+- [x] 3.3 Documentar convenciones de imports/capas (Router → Service → UoW → Repository → Model)
 
 ## 4. Base de datos — Alembic + seed
 

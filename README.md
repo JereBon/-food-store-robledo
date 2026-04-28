@@ -48,6 +48,28 @@ uvicorn main:app --reload --port 8000
 
 Docs: http://localhost:8000/docs
 
+## Backend — Convenciones de capas
+
+Flujo de dependencias (no se invierte):
+
+```
+Router → Service → Unit of Work (UoW) → Repository → Model
+```
+
+Reglas rápidas:
+- **Router** solo HTTP (requests/responses). Llama a `service`.
+- **Service** contiene la lógica de negocio. Usa UoW. No hace `commit()` directo.
+- **UoW** gestiona transacciones (commit/rollback) y expone repositorios.
+- **Repository** solo acceso a datos. Hereda de `BaseRepository[T]`.
+- **Model** no conoce services ni routers.
+
+Ejemplo de uso:
+
+```py
+with UnitOfWork() as uow:
+    result = service.crear_pedido(uow, data, usuario_id)
+```
+
 ## Frontend (dev)
 
 1. Copiá variables:
