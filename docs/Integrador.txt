@@ -1,7 +1,3 @@
-
-
-
-
 🍔 FOOD STORE
 Sistema de Gestión de Pedidos de Comida
 
@@ -64,7 +60,7 @@ Backend	slowapi	0.1.9+	Rate limiting por IP en endpoints críticos
 2. Arquitectura del Sistema
 2.1 Capas del Backend — Flujo de Dependencias
 El backend aplica una arquitectura de capas con módulos por feature. El patrón Unit of Work (UoW) se ubica entre la capa de servicio y los repositorios, garantizando atomicidad transaccional. El flujo de dependencias es unidireccional y no puede invertirse.
- 
+[DIAGRAMA: Arquitectura Backend - Capas y Flujo de Dependencias] Muestra cinco capas del backend conectadas con flechas unidireccionales (Router a Service a UoW a Repository a Model). (1) Router/router.py: parsea requests HTTP, valida schemas Pydantic, delega al Service; no contiene logica de negocio. Conoce a: Service. (2) Service/service.py: logica de negocio stateless, orquesta operaciones via UoW, lanza HTTPException; no hace commit/rollback. Conoce a: UoW. (3) Unit of Work/core/uow.py: gestiona la transaccion, abre sesion de BD, provee acceso a repositorios, hace commit() automatico o rollback() en error. Conoce a: Repository, Session. (4) Repository/repository.py: acceso a BD sin logica de negocio, hereda de BaseRepository[T] generico, recibe sesion del UoW por inyeccion. Conoce a: Model, Session. (5) Model/model.py: tablas SQLModel y relaciones, sin imports de capas superiores. Conoce a: Ninguna.
 Figura 1 — Capas del backend y flujo de dependencias unidireccional
 Regla de oro — flujo de imports:
   Router → Service → UoW → Repository → Model
@@ -80,7 +76,7 @@ Model	model.py	SQLModel tables + relaciones. Sin imports de capas superiores. De
 
 2.2 Capas del Frontend — Feature-Sliced Design
 El frontend aplica Feature-Sliced Design. Cada feature es autocontenida: sus componentes, hooks y estilos no son accesibles desde otras features. Los imports fluyen de arriba hacia abajo: Pages → Features → Hooks/Stores → API → Types.
- 
+[DIAGRAMA: Patron Unit of Work - Flujo Crear Pedido] Diagrama de secuencia con cuatro actores: Router, Service, Unit of Work y PostgreSQL. Pasos: (1) Router recibe POST /api/v1/pedidos y valida CrearPedidoRequest. (2) Router abre contexto UnitOfWork y llama service.crear_pedido(uow,...). (3) Service itera items, verifica disponible=true (SELECT). (4) Service calcula total: precio_snap x cantidad. (5) Service crea pedido + flush, obtiene id (INSERT). (6) Service crea DetallePedido por cada item con snapshots (INSERT x N). (7) Service crea HistorialEstadoPedido con estado_desde=NULL (INSERT). (8) UoW hace COMMIT atomico. Si hay error: ROLLBACK, nada persiste.
 Figura 2 — Capas del frontend y organización feature-sliced
 
 Separación Zustand / TanStack Query:
@@ -150,7 +146,7 @@ Pago ★	idempotency_key	VARCHAR(100)	UQ, NN	UUID generado por backend. Evita co
  
 3.4 Máquina de Estados — Pedido
 La entidad EstadoPedido es un catálogo. La capa de servicio valida la transición contra el mapa definido antes de cada INSERT en HistorialEstadoPedido. Ningún router puede saltear esta validación.
- 
+[DIAGRAMA: Maquina de Estados - Pedido FSM] Seis estados con transiciones validas. Estados activos: PENDIENTE (orden 1), CONFIRMADO (orden 2), EN_PREP (orden 3), EN_CAMINO (orden 4). Estados terminales: ENTREGADO (orden 5), CANCELADO (orden 6). Flujo principal: PENDIENTE -pago MP- CONFIRMADO, EN_PREP, EN_CAMINO, ENTREGADO. Flechas rojas punteadas hacia CANCELADO desde PENDIENTE, CONFIRMADO y EN_PREP. Reglas: RN-01: es_terminal=true no admite transiciones salientes; RN-02: primer historial con estado_desde=NULL; RN-03: HistorialEstadoPedido es append-only.
 Figura 3 — Máquina de estados del Pedido (FSM). Las flechas rojas punteadas indican transición → CANCELADO
 
 Código	Descripción	Orden	es_terminal	Transiciones válidas
@@ -257,7 +253,7 @@ DetallePedidoRead	producto_id, nombre_snapshot, precio_snapshot, cantidad, perso
 7. Patrón Unit of Work (UoW)
 El Unit of Work actúa como director de orquesta que garantiza que todas las operaciones de base de datos dentro de una transacción de negocio tengan éxito o fallen como un conjunto. El commit ya no ocurre en el service.
 7.1 Flujo de una Operación con UoW — Crear Pedido
- 
+[DIAGRAMA: Gestion de Estado - Zustand 4 Stores] Cuatro stores con responsabilidades separadas: (1) authStore: accessToken, usuario, isAuthenticated. Metodos: login(), logout(), refreshToken(), hasRole(). Persiste: solo accessToken. (2) cartStore: items CartItem[] con producto_id, nombre, precio, cantidad, imagen_url. Metodos: addItem(), removeItem(), clearCart(), updateCantidad(), subtotal(), costoEnvio(), total(). Persiste: items completos. (3) paymentStore: status idle/processing/approved/rejected/error, mpPaymentId, statusDetail. Metodo: setPaymentStatus(), reset(). SIN persistencia. (4) uiStore: cartOpen, sidebarOpen, confirmModal. Metodos: openCart(), closeCart(), toggleSidebar(). SIN persistencia. Separacion: Zustand gestiona estado del CLIENTE; TanStack Query gestiona estado del SERVIDOR.
 Figura 4 — Flujo de creación de pedido con Unit of Work. Todos los INSERT son atómicos.
 
 Paso	Capa	Operación	¿Toca BD?
@@ -291,7 +287,7 @@ Food Store integra MercadoPago Checkout API. Permite procesar pagos con tarjeta 
   idempotency_key UUID generado por el backend evita cobros duplicados por reintento.
 
 8.1 Flujo Completo de Pago
- 
+[DIAGRAMA: Flujo de Pago - MercadoPago Checkout API] Diagrama de secuencia con tres actores: Frontend React, Backend FastAPI y MercadoPago. Pasos: (1) Frontend renderiza CardPayment con SDK de MercadoPago. (2) Cliente ingresa tarjeta, SDK tokeniza a card_token. (3) Frontend llama POST /api/v1/pagos/crear. (4) Backend genera idempotency_key UUID y llama a MercadoPago API. (5) MercadoPago devuelve mp_payment_id y status. (5b) Backend hace INSERT en tabla Pago via UoW. (6) MercadoPago envia POST /pagos/webhook IPN con topic=payment. (7) Si approved: UoW avanza Pedido a CONFIRMADO. (8) Frontend detecta con polling y actualiza UI. Nota: datos de tarjeta nunca pasan por el servidor de Food Store; es PCI SAQ-A compliant.
 Figura 5 — Flujo completo de pago MercadoPago. Los datos de tarjeta nunca pasan por Food Store.
 
 8.2 Estados de Pago y Acciones del Sistema
@@ -310,7 +306,7 @@ Número de tarjeta	Red	Resultado	CVV	Vencimiento
  
 9. Gestión de Estado con Zustand
 Zustand es la librería de gestión de estado global del frontend. Food Store requiere cuatro stores con responsabilidades claramente separadas.
- 
+[DIAGRAMA: Arquitectura Frontend - Feature-Sliced Design] Capas del frontend con flujo de imports de arriba hacia abajo: Pages a Features a Hook/Store a API a Types, sin cross-imports entre features. (1) Pages/pages/: solo define la ruta y delega a los features. (2) Cuatro features: feature/auth (LoginForm, RegisterForm, ProtectedRoute HOC), feature/store (CatalogoGrid, CartDrawer, CheckoutForm), feature/pedidos (PedidosList, PedidoDetail, HistorialTimeline, PaymentStatus), feature/admin (Dashboard, CRUDs, GestionPedidos, StockTable). (3) Hooks con TanStack Query: useAuth, useProductos, usePedidos, useAdmin. Stores Zustand: authStore, cartStore, paymentStore, uiStore. (4) API/Axios con interceptores JWT. (5) Types con strict:true sin any. Al pie: Components compartidos y React Router DOM.
 Figura 6 — Los cuatro stores Zustand y sus responsabilidades. Persistencia selectiva por store.
 
 Store	Archivo	Estado que gestiona	Middleware	Persiste

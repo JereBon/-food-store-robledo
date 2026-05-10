@@ -1,101 +1,145 @@
-# Food Store
+# Food Store — Repositorio Base
 
-Monorepo del proyecto **Food Store** (React + TypeScript + Vite / FastAPI + SQLModel + PostgreSQL).
+Sistema de e-commerce de productos alimenticios desarrollado con **Spec-Driven Development (SDD)** usando OPSX y Claude Code.
 
-## Estructura
+---
 
-- `frontend/`: app web (Vite + React + TS)
-- `backend/`: API (FastAPI)
-- `openspec/`: workflow OPSX (changes, specs)
-- `documentos/`: documentación del proyecto
+## Documentación del sistema
 
-## Requisitos
+Antes de escribir una línea de código, leé los tres documentos en `docs/`:
 
-- Node.js + npm
-- Python 3.13+
-- PostgreSQL
+| Archivo | Contenido |
+|---------|-----------|
+| `docs/Descripcion.txt` | Visión general, actores del sistema y stack tecnológico |
+| `docs/Integrador.txt` | Arquitectura en capas, ERD, API REST y patrones de diseño |
+| `docs/Historias_de_usuario.txt` | US-000 a US-076 con criterios de aceptación y reglas de negocio |
 
-## Backend (dev)
+Estos documentos son la fuente de verdad del sistema. El agente los lee antes de cada propuesta.
 
-1. Copiá variables:
+---
+
+## Stack tecnológico
+
+**Backend**: FastAPI · SQLModel · PostgreSQL · Alembic · bcrypt · python-jose · slowapi · MercadoPago SDK  
+**Frontend**: React · TypeScript · Vite · TanStack Query · TanStack Form · Zustand · Axios · Tailwind CSS · Recharts
+
+---
+
+## Setup del entorno de desarrollo
+
+### Requisitos previos
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 15+
+- Claude Code: `npm install -g @anthropic-ai/claude-code`
+- OpenSpec CLI: `npm install -g @fission-ai/openspec`
+
+### 1. Clonar e inicializar
 
 ```bash
-cp backend/.env.example backend/.env
+git clone <url-del-repo> food-store
+cd food-store
 ```
 
-2. (Opcional) Crear venv e instalar deps:
+### 2. Inicializar OpenSpec
 
 ```bash
-python -m venv .venv
-# activar venv
-python -m pip install -r backend/requirements.txt
+npx @fission-ai/openspec@latest init
 ```
 
-3. Migraciones + seed:
+Esto genera la carpeta `openspec/` donde van a vivir todos los artefactos del proyecto.
+
+### 3. Backend
 
 ```bash
 cd backend
+cp .env.example .env
+# Completar las variables de entorno en .env
+
+python -m venv .venv
+source .venv/bin/activate   # Linux/Mac
+.venv\Scripts\activate      # Windows
+
+pip install -r requirements.txt
 alembic upgrade head
 python -m app.db.seed
+uvicorn app.main:app --reload
 ```
 
-4. Ejecutar API:
+API disponible en `http://localhost:8000`  
+Documentación Swagger en `http://localhost:8000/docs`
 
-```bash
-cd backend
-uvicorn main:app --reload --port 8000
-```
-
-Docs: http://localhost:8000/docs
-
-## Backend — Convenciones de capas
-
-Flujo de dependencias (no se invierte):
-
-```
-Router → Service → Unit of Work (UoW) → Repository → Model
-```
-
-Reglas rápidas:
-- **Router** solo HTTP (requests/responses). Llama a `service`.
-- **Service** contiene la lógica de negocio. Usa UoW. No hace `commit()` directo.
-- **UoW** gestiona transacciones (commit/rollback) y expone repositorios.
-- **Repository** solo acceso a datos. Hereda de `BaseRepository[T]`.
-- **Model** no conoce services ni routers.
-
-Ejemplo de uso:
-
-```py
-with UnitOfWork() as uow:
-    result = service.crear_pedido(uow, data, usuario_id)
-```
-
-## Frontend (dev)
-
-1. Copiá variables:
-
-```bash
-cp frontend/.env.example frontend/.env
-```
-
-2. Instalar deps y levantar:
+### 4. Frontend
 
 ```bash
 cd frontend
+cp .env.example .env
+# Completar VITE_API_URL=http://localhost:8000
+
 npm install
-npm run dev -- --port 5173
+npm run dev
 ```
 
-## OPSX
+App disponible en `http://localhost:5173`
 
-Lista de changes:
+---
 
-```bash
-openspec list
+## Flujo de desarrollo con OPSX
+
+Todo cambio al sistema sigue este ciclo:
+
+```
+/opsx:explore   →  pensar antes de comprometerse (opcional)
+/opsx:propose   →  generar propuesta + diseño + tareas
+/opsx:apply     →  implementar tarea por tarea
+/opsx:archive   →  sincronizar specs y cerrar el change
 ```
 
-Estado de un change:
+### Orden de implementación
 
-```bash
-openspec status --change "<name>"
+```
+us-000-setup               ← infraestructura base (Sprint 0)
+us-001-auth                ← JWT · RBAC · refresh tokens
+us-002-categorias          ← catálogo jerárquico
+us-003-productos           ← CRUD · stock · ingredientes
+us-004-carrito             ← estado client-side con Zustand
+us-005-pedidos             ← UoW · FSM · audit trail
+us-006-pagos-mercadopago   ← checkout · webhooks IPN
+us-007-admin               ← panel · métricas
+us-008-direcciones         ← direcciones de entrega
+```
+
+---
+
+## Variables de entorno
+
+Crear `backend/.env` a partir de `backend/.env.example`:
+
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/foodstore
+SECRET_KEY=tu-clave-secreta-de-64-caracteres-minimo
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+MP_ACCESS_TOKEN=TEST-tu-token-de-mercadopago
+MP_PUBLIC_KEY=TEST-tu-public-key-de-mercadopago
+CORS_ORIGINS=http://localhost:5173
+```
+
+Crear `frontend/.env` a partir de `frontend/.env.example`:
+
+```env
+VITE_API_URL=http://localhost:8000
+VITE_MP_PUBLIC_KEY=TEST-tu-public-key-de-mercadopago
+```
+
+---
+
+## Convenciones de commits
+
+```
+feat(modulo): descripción del cambio
+fix(modulo): descripción del bug corregido
+refactor(modulo): descripción del refactor
+test(modulo): descripción de los tests
+docs(modulo): descripción del cambio en docs
 ```
