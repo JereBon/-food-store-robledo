@@ -27,3 +27,6 @@ Antes de implementar código, debes consultar obligatoriamente los documentos de
 2. Identifica las Reglas de Negocio (RN) que aplican a esa historia.
 3. Genera o modifica el código respetando el flujo de dependencias.
 4. Asegúrate de no introducir deuda técnica ni violar los patrones de arquitectura base.
+
+## Piloto Automático de Git
+Al momento de iniciar o finalizar cualquier Change, es tu obligación ejecutar automáticamente las directivas de la skill ubicada en `.agents/skills/git_workflow/SKILL.md`. Guía al usuario en el proceso de verificación y merge sin que él te lo tenga que pedir.
