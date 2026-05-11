@@ -56,3 +56,14 @@ El frontend SHALL incluir Tailwind CSS configurado para estilos utility-first.
 - **WHEN** un componente usa clases de Tailwind
 - **THEN** se aplican correctamente en desarrollo
 
+### Requirement: Registro de cliente disponible en frontend
+El frontend SHALL proveer un flujo de registro de cliente con validaciones de email único y contraseña mínima (>= 8 caracteres).
+
+#### Scenario: Registro exitoso en frontend
+- **WHEN** el usuario completa el formulario con email no registrado y contraseña válida
+- **THEN** la UI muestra confirmación y se almacenan tokens en `authStore`
+
+#### Scenario: Error de email duplicado en frontend
+- **WHEN** el backend responde que el email ya está registrado
+- **THEN** la UI muestra el mensaje de error correspondiente
+

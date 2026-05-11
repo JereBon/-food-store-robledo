@@ -58,3 +58,17 @@ El backend SHALL proveer dependencias reutilizables `get_current_user` y `requir
 - **WHEN** se accede a un endpoint protegido con un usuario sin el rol requerido
 - **THEN** el sistema responde HTTP 403
 
+### Requirement: Registro crea usuario CLIENT sin rol en request
+El backend SHALL asignar automáticamente el rol CLIENT al registrar usuarios nuevos y SHALL ignorar cualquier rol provisto en el request.
+
+#### Scenario: Rol CLIENT asignado automaticamente
+- **WHEN** el usuario se registra
+- **THEN** el rol asignado es CLIENT y no se acepta rol desde el payload
+
+### Requirement: Registro retorna tokens de autenticación
+El backend SHALL devolver access token y refresh token al completar registro exitoso.
+
+#### Scenario: Tokens devueltos en registro
+- **WHEN** el registro se completa correctamente
+- **THEN** la respuesta incluye access token (30 min) y refresh token (7 días)
+
