@@ -1,22 +1,53 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
+/* eslint.config.js */
 
-export default defineConfig([
-  globalIgnores(['dist']),
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
+
+export default [
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
+    ignores: ['dist', 'node_modules', '.venv', 'build'],
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
-      globals: globals.browser,
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 2021,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        React: 'readonly',
+      },
+    },
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+      '@typescript-eslint': typescriptEslintPlugin,
+    },
+    rules: {
+      // TypeScript
+      '@typescript-eslint/explicit-function-return-types': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_' 
+      }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      
+      // React
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react/display-name': 'warn',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      
+      // General
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'prefer-const': 'warn',
+      'no-var': 'error',
     },
   },
-])
+];
