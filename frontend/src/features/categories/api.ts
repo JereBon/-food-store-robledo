@@ -2,12 +2,10 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-  UseMutationResult,
-  UseQueryResult,
 } from '@tanstack/react-query';
-import { ICategory, ICategoryCreate, ICategoryUpdate } from '../../entities/category';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import type { ICategory, ICategoryCreate, ICategoryUpdate } from '../../entities/category';
+import { http } from '@/shared/api/http';
 
 /**
  * Fetch all categories (non-deleted)
@@ -23,20 +21,12 @@ export const useCategories = (
         params.append('include_deleted', 'true');
       }
 
-      const response = await fetch(
-        `${API_BASE}/categories?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch categories: ${response.statusText}`);
+      try {
+        const { data } = await http.get<ICategory[]>(`/categories?${params.toString()}`);
+        return data;
+      } catch (err: any) {
+        throw new Error(err.response?.data?.detail || err.message || 'Failed to fetch categories');
       }
-
-      return response.json();
     },
   });
 };
@@ -50,20 +40,12 @@ export const useCategory = (
   return useQuery({
     queryKey: ['categories', categoryId],
     queryFn: async () => {
-      const response = await fetch(
-        `${API_BASE}/categories/${categoryId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch category: ${response.statusText}`);
+      try {
+        const { data } = await http.get<ICategory>(`/categories/${categoryId}`);
+        return data;
+      } catch (err: any) {
+        throw new Error(err.response?.data?.detail || err.message || 'Failed to fetch category');
       }
-
-      return response.json();
     },
     enabled: !!categoryId,
   });
@@ -81,24 +63,15 @@ export const useCreateCategory = (): UseMutationResult<
 
   return useMutation({
     mutationFn: async (data: ICategoryCreate) => {
-      const response = await fetch(`${API_BASE}/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 403) {
+      try {
+        const response = await http.post<ICategory>('/categories', data);
+        return response.data;
+      } catch (err: any) {
+        if (err.response?.status === 403) {
           throw new Error('You do not have permission to create categories (admin only)');
         }
-        throw new Error(error.detail || `Failed to create category: ${response.statusText}`);
+        throw new Error(err.response?.data?.detail || err.message || 'Failed to create category');
       }
-
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -118,24 +91,15 @@ export const useUpdateCategory = (): UseMutationResult<
 
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      const response = await fetch(`${API_BASE}/categories/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 403) {
+      try {
+        const response = await http.put<ICategory>(`/categories/${id}`, data);
+        return response.data;
+      } catch (err: any) {
+        if (err.response?.status === 403) {
           throw new Error('You do not have permission to update categories (admin only)');
         }
-        throw new Error(error.detail || `Failed to update category: ${response.statusText}`);
+        throw new Error(err.response?.data?.detail || err.message || 'Failed to update category');
       }
-
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -155,22 +119,16 @@ export const useDeleteCategory = (): UseMutationResult<
 
   return useMutation({
     mutationFn: async (categoryId: number) => {
-      const response = await fetch(`${API_BASE}/categories/${categoryId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 403) {
+      try {
+        await http.delete(`/categories/${categoryId}`);
+      } catch (err: any) {
+        if (err.response?.status === 403) {
           throw new Error('You do not have permission to delete categories (admin only)');
         }
-        if (response.status === 400) {
-          throw new Error(error.detail || 'Cannot delete category with active products');
+        if (err.response?.status === 400) {
+          throw new Error(err.response?.data?.detail || 'Cannot delete category with active products');
         }
-        throw new Error(error.detail || `Failed to delete category: ${response.statusText}`);
+        throw new Error(err.response?.data?.detail || err.message || 'Failed to delete category');
       }
     },
     onSuccess: () => {

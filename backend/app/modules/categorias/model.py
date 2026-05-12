@@ -19,4 +19,4 @@ class Category(SQLModel, table=True):
 
 
 # Import at the end to avoid circular imports
-from app.db.models import Product  # noqa: E402, F401
+from app.modules.productos.model import Product  # noqa: E402, F401

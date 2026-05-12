@@ -21,7 +21,7 @@ export function ProtectedRoute({ children, roles }: Props) {
   if (roles && roles.length > 0) {
     const ok = roles.some((r) => userRoles.includes(r))
     if (!ok) {
-      return <Navigate to="/403" replace />
+      return <Navigate to="/" replace />
     }
   }
 

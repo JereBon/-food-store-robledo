@@ -1,39 +1,27 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useRegister } from '@/features/auth/model/useRegister'
-import { useAuthStore } from '@/shared/stores/authStore'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { useLogin } from '../api/login'
 
-export function RegisterForm() {
+export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
-  const [nombre, setNombre] = useState('')
-  const [apellido, setApellido] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
+  
   const navigate = useNavigate()
-  const { mutateAsync, isPending } = useRegister()
-  const setSession = useAuthStore((s) => s.setSession)
+  const location = useLocation()
+  const { mutateAsync, isPending } = useLogin()
+
+  const from = location.state?.from?.pathname || '/'
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
 
     try {
-      const response = await mutateAsync({ nombre, apellido, email, password })
-      setSession(
-        response.access_token, 
-        response.refresh_token, 
-        response.user.roles.map(r => r.code as any),
-        {
-          id: response.user.id,
-          email: response.user.email,
-          nombre: response.user.nombre,
-          apellido: response.user.apellido
-        }
-      )
-      navigate('/', { replace: true })
+      await mutateAsync({ email, password })
+      navigate(from, { replace: true })
     } catch (err: any) {
-      const message = err.response?.data?.detail || err.message || 'Error inesperado'
+      const message = err.response?.data?.detail || 'Credenciales inválidas'
       setError(message)
     }
   }
@@ -41,41 +29,12 @@ export function RegisterForm() {
   return (
     <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-xl shadow-lg border border-slate-100">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-slate-900">Crear Cuenta</h2>
-        <p className="mt-2 text-sm text-slate-600">Únete a Food Store para gestionar el catálogo</p>
+        <h2 className="text-3xl font-bold text-slate-900">Bienvenido</h2>
+        <p className="mt-2 text-sm text-slate-600">Ingresa a tu cuenta de Food Store</p>
       </div>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-6">
         <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Nombre
-              </label>
-              <input
-                className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                name="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder="Juan"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Apellido
-              </label>
-              <input
-                className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                name="apellido"
-                value={apellido}
-                onChange={(e) => setApellido(e.target.value)}
-                placeholder="Pérez"
-                required
-              />
-            </div>
-          </div>
-          
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Email
@@ -84,6 +43,7 @@ export function RegisterForm() {
               className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ejemplo@correo.com"
@@ -98,7 +58,7 @@ export function RegisterForm() {
               className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               name="password"
               type="password"
-              minLength={8}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -124,15 +84,15 @@ export function RegisterForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Registrando...
+              Iniciando sesión...
             </span>
-          ) : 'Registrarme'}
+          ) : 'Iniciar Sesión'}
         </button>
 
         <div className="text-center mt-4">
-          <span className="text-sm text-slate-600">¿Ya tienes cuenta? </span>
-          <Link to="/login" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-            Inicia sesión aquí
+          <span className="text-sm text-slate-600">¿No tienes cuenta? </span>
+          <Link to="/register" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+            Regístrate aquí
           </Link>
         </div>
       </form>

@@ -9,7 +9,26 @@ class RegisterRequest(BaseModel):
     telefono: str | None = Field(default=None, max_length=30)
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class RoleResponse(BaseModel):
+    id: int
+    code: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    nombre: str
+    apellido: str
+    roles: list[RoleResponse]
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    user: UserResponse

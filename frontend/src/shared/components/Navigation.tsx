@@ -6,8 +6,8 @@ import { useAuthStore } from '@/shared/stores/authStore';
  * Navigation - sidebar/header navigation component
  */
 export const Navigation: FC = () => {
-  const { user } = useAuthStore();
-  const isAdmin = user?.roles?.some(r => r.code === 'ADMIN');
+  const { user, roles } = useAuthStore();
+  const isAdmin = roles?.includes('ADMIN');
 
   return (
     <nav className="bg-gray-800 text-white shadow-lg">
@@ -46,14 +46,33 @@ export const Navigation: FC = () => {
             )}
 
             {/* User Menu */}
-            {user && (
-              <div className="flex items-center space-x-3 pl-3 border-l border-gray-600">
-                <span className="text-sm">{user.email}</span>
-                {user.roles && user.roles.length > 0 && (
-                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                    {user.roles.map(r => r.code).join(', ')}
-                  </span>
-                )}
+            {user ? (
+              <div className="flex items-center space-x-4 pl-4 border-l border-gray-600">
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-medium">{user.nombre} {user.apellido}</span>
+                  <span className="text-xs text-gray-400">{user.email}</span>
+                </div>
+                <button
+                  onClick={() => useAuthStore.getState().clearSession()}
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-bold transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm font-bold transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md text-sm font-bold transition-colors"
+                >
+                  Registrarse
+                </Link>
               </div>
             )}
           </div>

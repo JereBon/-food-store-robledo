@@ -17,7 +17,7 @@ class UnitOfWork(AbstractContextManager):
         self.refresh_tokens: RefreshTokensRepository
 
     def __enter__(self):
-        self.session = Session(self._engine)
+        self.session = Session(self._engine, expire_on_commit=False)
         self.users = UsersRepository(self.session)
         self.refresh_tokens = RefreshTokensRepository(self.session)
         return self

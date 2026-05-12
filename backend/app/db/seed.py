@@ -41,7 +41,12 @@ def _upsert_payment_method(session: Session, *, id: int, code: str, name: str, e
 def _ensure_admin(session: Session) -> None:
     admin = session.exec(select(User).where(User.email == settings.seed_admin_email)).first()
     if not admin:
-        admin = User(email=settings.seed_admin_email, password_hash=hash_password(settings.seed_admin_password))
+        admin = User(
+            email=settings.seed_admin_email,
+            password_hash=hash_password(settings.seed_admin_password),
+            nombre="Admin",
+            apellido="System"
+        )
         session.add(admin)
         session.commit()
         session.refresh(admin)
