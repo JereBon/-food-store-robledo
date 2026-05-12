@@ -29,4 +29,9 @@ Antes de implementar código, debes consultar obligatoriamente los documentos de
 4. Asegúrate de no introducir deuda técnica ni violar los patrones de arquitectura base.
 
 ## Piloto Automático de Git
+**CRÍTICO**: Al iniciar y al finalizar cualquier Change, el orquestador y el agente ejecutor deben aplicar obligatoriamente el flujo descrito en la skill `git_workflow` (branching → merge --no-ff → push) para mantener el historial de GitHub limpio y segmentado.
+
 Al momento de iniciar o finalizar cualquier Change, es tu obligación ejecutar automáticamente las directivas de la skill ubicada en `.agents/skills/git_workflow/SKILL.md`. Guía al usuario en el proceso de verificación y merge sin que él te lo tenga que pedir.
+
+## Skills del Proyecto (uso obligatorio)
+- `engram-memory-workflow` — Sincronización de memoria persistente con Engram (ver `.agents/skills/engram-memory-workflow/SKILL.md`).

@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlmodel import Session, select
 
 from app.modules.productos.model import Product
-from app.db.models import Category
+from app.modules.categorias.model import Category
 
 
 class ProductRepository:

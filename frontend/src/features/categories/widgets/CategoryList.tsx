@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { ICategory } from '../../../entities/category';
+import type { ICategory } from '../../../entities/category';
 
 interface CategoryListProps {
   categories: ICategory[];
@@ -20,7 +20,7 @@ export const CategoryList: FC<CategoryListProps> = ({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="text-gray-500">Loading categories...</div>
+        <div className="text-gray-500">Cargando categorías...</div>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export const CategoryList: FC<CategoryListProps> = ({
   if (categories.length === 0) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="text-gray-500">No categories found</div>
+        <div className="text-gray-500">No se encontraron categorías</div>
       </div>
     );
   }
@@ -38,11 +38,11 @@ export const CategoryList: FC<CategoryListProps> = ({
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-100 border-b">
-            <th className="px-4 py-2 text-left text-sm font-semibold">Name</th>
+            <th className="px-4 py-2 text-left text-sm font-semibold">Nombre</th>
             <th className="px-4 py-2 text-left text-sm font-semibold">Slug</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold">Description</th>
-            <th className="px-4 py-2 text-left text-sm font-semibold">Created</th>
-            <th className="px-4 py-2 text-right text-sm font-semibold">Actions</th>
+            <th className="px-4 py-2 text-left text-sm font-semibold">Descripción</th>
+            <th className="px-4 py-2 text-left text-sm font-semibold">Creado</th>
+            <th className="px-4 py-2 text-right text-sm font-semibold">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -65,7 +65,7 @@ export const CategoryList: FC<CategoryListProps> = ({
                     onClick={() => onEdit(category)}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
-                    Edit
+                    Editar
                   </button>
                 )}
                 {onDelete && (
@@ -73,7 +73,7 @@ export const CategoryList: FC<CategoryListProps> = ({
                     onClick={() => onDelete(category)}
                     className="text-red-600 hover:text-red-800 text-sm font-medium"
                   >
-                    Delete
+                    Eliminar
                   </button>
                 )}
               </td>

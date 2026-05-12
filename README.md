@@ -95,6 +95,8 @@ Todo cambio al sistema sigue este ciclo:
 /opsx:archive   →  sincronizar specs y cerrar el change
 ```
 
+> **CRÍTICO**: Al iniciar y al finalizar cualquier Change, el orquestador y el agente ejecutor deben aplicar obligatoriamente el flujo descrito en la skill `git_workflow` (branching → merge --no-ff → push) para mantener el historial de GitHub limpio y segmentado.
+
 ### Orden de implementación
 
 ```

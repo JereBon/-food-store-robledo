@@ -7,9 +7,9 @@ import secrets
 from fastapi import HTTPException, status
 
 from app.core.config import settings
-from app.core.security import create_access_token, hash_password
+from app.core.security import create_access_token, hash_password, verify_password
 from app.db.models import RefreshToken, User
-from app.modules.auth.schemas import RegisterRequest, TokenResponse
+from app.modules.auth.schemas import RegisterRequest, LoginRequest, TokenResponse, UserResponse, RoleResponse
 from app.uow import UnitOfWork
 
 
@@ -50,6 +50,46 @@ def register_user(uow: UnitOfWork, request: RegisterRequest) -> TokenResponse:
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            nombre=user.nombre,
+            apellido=user.apellido,
+            roles=[RoleResponse(id=role_id, code="CLIENT")]
+        )
+    )
+
+
+def authenticate_user(uow: UnitOfWork, request: LoginRequest) -> TokenResponse:
+    user = uow.users.get_by_email(request.email)
+    
+    # RN-AU08: No diferenciar email de password en el error
+    error_msg = "Email o contraseña incorrectos"
+    
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_msg)
+    
+    if not verify_password(request.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_msg)
+    
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Cuenta desactivada")
+
+    roles = [r.code for r in user.roles]
+    access_token = create_access_token(subject=str(user.id), roles=roles)
+    refresh_token = _create_refresh_token(uow, user_id=user.id)
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            nombre=user.nombre,
+            apellido=user.apellido,
+            roles=[RoleResponse(id=r.id, code=r.code) for r in user.roles]
+        )
     )
 
 

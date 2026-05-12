@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../api';
-import { ICategory } from '../../../entities/category';
+import type { ICategory } from '../../../entities/category';
 import { CategoryForm } from '../widgets/CategoryForm';
 import { CategoryList } from '../widgets/CategoryList';
 
@@ -67,12 +67,12 @@ export const CategoriesPage: FC = () => {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Categories Management</h1>
+          <h1 className="text-3xl font-bold">Gestión de Categorías</h1>
           <button
             onClick={handleOpenCreate}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
           >
-            + New Category
+            + Nueva Categoría
           </button>
         </div>
 
@@ -83,13 +83,13 @@ export const CategoriesPage: FC = () => {
             onChange={(e) => setIncludeDeleted(e.target.checked)}
             className="rounded"
           />
-          <span>Show deleted categories</span>
+          <span>Mostrar categorías eliminadas</span>
         </label>
       </div>
 
       {error && (
         <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded mb-4">
-          Error loading categories: {error.message}
+          Error al cargar las categorías: {error.message}
         </div>
       )}
 
@@ -105,7 +105,7 @@ export const CategoriesPage: FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
             <h2 className="text-xl font-bold mb-4">
-              {selectedCategory ? 'Edit Category' : 'Create New Category'}
+              {selectedCategory ? 'Editar Categoría' : 'Crear Nueva Categoría'}
             </h2>
             <CategoryForm
               category={selectedCategory}
@@ -121,7 +121,7 @@ export const CategoriesPage: FC = () => {
               disabled={isSubmitting}
               className="mt-4 w-full px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:text-gray-400"
             >
-              Cancel
+              Cancelar
             </button>
           </div>
         </div>
@@ -131,13 +131,13 @@ export const CategoriesPage: FC = () => {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-            <h2 className="text-lg font-bold mb-2">Delete Category</h2>
+            <h2 className="text-lg font-bold mb-2">Eliminar Categoría</h2>
             <p className="text-gray-700 mb-2">
-              Are you sure you want to delete category{' '}
+              ¿Estás seguro de que deseas eliminar la categoría{' '}
               <strong>{deleteConfirm.name}</strong>?
             </p>
             <p className="text-sm text-red-600 mb-4">
-              This action cannot be undone if the category has no products.
+              Esta acción no se puede deshacer si la categoría no tiene productos.
             </p>
             <div className="flex space-x-3">
               <button
@@ -145,14 +145,14 @@ export const CategoriesPage: FC = () => {
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400"
               >
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
               </button>
               <button
                 onClick={() => setDeleteConfirm(null)}
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:text-gray-400"
               >
-                Cancel
+                Cancelar
               </button>
             </div>
             {deleteMutation.error && (

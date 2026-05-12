@@ -1,6 +1,6 @@
 import { FC, useEffect } from 'react';
 import { useCategories } from '../api';
-import { ICategory } from '../../../entities/category';
+import type { ICategory } from '../../../entities/category';
 
 interface CategorySelectProps {
   value?: number | null;

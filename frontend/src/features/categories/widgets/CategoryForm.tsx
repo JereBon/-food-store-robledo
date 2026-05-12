@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { ICategory, ICategoryCreate, ICategoryUpdate } from '../../../entities/category';
+import type { ICategory, ICategoryCreate, ICategoryUpdate } from '../../../entities/category';
 
 interface CategoryFormProps {
   category?: ICategory | null;
@@ -33,17 +33,17 @@ export const CategoryForm: FC<CategoryFormProps> = ({
     setLocalError(null);
 
     if (!name.trim()) {
-      setLocalError('Category name is required');
+      setLocalError('El nombre de la categoría es obligatorio');
       return;
     }
 
     if (name.length > 100) {
-      setLocalError('Category name must be 100 characters or less');
+      setLocalError('El nombre de la categoría debe tener 100 caracteres o menos');
       return;
     }
 
     if (description.length > 500) {
-      setLocalError('Description must be 500 characters or less');
+      setLocalError('La descripción debe tener 500 caracteres o menos');
       return;
     }
 
@@ -53,7 +53,7 @@ export const CategoryForm: FC<CategoryFormProps> = ({
         description: description.trim() || null,
       });
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'An error occurred');
+      setLocalError(err instanceof Error ? err.message : 'Ocurrió un error');
     }
   };
 
@@ -67,40 +67,40 @@ export const CategoryForm: FC<CategoryFormProps> = ({
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Category Name *
+          Nombre de la Categoría *
         </label>
         <input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter category name"
+          placeholder="Ingresa el nombre de la categoría"
           maxLength={100}
           required
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
         />
         <p className="text-xs text-gray-500 mt-1">
-          {name.length}/100 characters
+          {name.length}/100 caracteres
         </p>
       </div>
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
+          Descripción
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter category description (optional)"
+          placeholder="Ingresa la descripción de la categoría (opcional)"
           maxLength={500}
           rows={4}
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
         />
         <p className="text-xs text-gray-500 mt-1">
-          {description.length}/500 characters
+          {description.length}/500 caracteres
         </p>
       </div>
 
@@ -109,7 +109,7 @@ export const CategoryForm: FC<CategoryFormProps> = ({
         disabled={isLoading}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
       >
-        {isLoading ? 'Saving...' : category ? 'Update Category' : 'Create Category'}
+        {isLoading ? 'Guardando...' : category ? 'Actualizar Categoría' : 'Crear Categoría'}
       </button>
     </form>
   );
