@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useProducts } from '@/features/products/api'
 import { useCategories } from '@/features/categories/api'
+import { AddToCartButton } from '@/features/products/widgets/AddToCartButton'
 
 export function CatalogPage() {
   const [skip, setSkip] = useState(0)
@@ -79,31 +80,33 @@ export function CatalogPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {data.items.map((product) => (
-              <Link
+              <div
                 key={product.id}
-                to={`/catalog/${product.id}`}
                 className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
               >
-                {product.imagen_url && (
-                  <img
-                    src={product.imagen_url}
-                    alt={product.name}
-                    className="w-full h-40 object-cover rounded mb-2"
-                  />
-                )}
-                <h2 className="text-lg font-semibold">{product.name}</h2>
-                <p className="text-gray-600">${Number(product.price).toFixed(2)}</p>
-                <p className="text-sm text-gray-500">
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                </p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {product.categories.map((cat) => (
-                    <span key={cat.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                      {cat.name}
-                    </span>
-                  ))}
-                </div>
-              </Link>
+                <Link to={`/catalog/${product.id}`}>
+                  {product.imagen_url && (
+                    <img
+                      src={product.imagen_url}
+                      alt={product.name}
+                      className="w-full h-40 object-cover rounded mb-2"
+                    />
+                  )}
+                  <h2 className="text-lg font-semibold">{product.name}</h2>
+                  <p className="text-gray-600">${Number(product.price).toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">
+                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                  </p>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {product.categories.map((cat) => (
+                      <span key={cat.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                        {cat.name}
+                      </span>
+                    ))}
+                  </div>
+                </Link>
+                <AddToCartButton product={product} variant="card" />
+              </div>
             ))}
           </div>
 

@@ -82,6 +82,23 @@ export const useDeleteProduct = (): UseMutationResult<void, Error, number> => {
   })
 }
 
+export const useSetProductIngredients = (): UseMutationResult<
+  IProduct,
+  Error,
+  { id: number; ingredients: { ingrediente_id: number; es_removible: boolean }[] }
+> => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, ingredients }) => {
+      const { data } = await http.put<IProduct>(`/products/${id}/ingredients`, ingredients)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
 export const useUpdateStock = (): UseMutationResult<
   IProduct,
   Error,

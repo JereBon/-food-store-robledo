@@ -1,13 +1,20 @@
 import { useNavigate } from 'react-router-dom'
-import { useCreateProduct } from '@/features/products/api'
+import { useCreateProduct, useSetProductIngredients } from '@/features/products/api'
 import { ProductForm, IProductFormData } from '@/features/products/widgets/ProductForm'
 
 export function ProductCreatePage() {
   const navigate = useNavigate()
   const createMutation = useCreateProduct()
+  const setIngredientsMutation = useSetProductIngredients()
 
   const handleSubmit = async (data: IProductFormData) => {
-    await createMutation.mutateAsync(data)
+    const product = await createMutation.mutateAsync(data)
+    if (data.ingredient_selections.length > 0) {
+      await setIngredientsMutation.mutateAsync({
+        id: product.id,
+        ingredients: data.ingredient_selections,
+      })
+    }
     navigate('/admin/products')
   }
 

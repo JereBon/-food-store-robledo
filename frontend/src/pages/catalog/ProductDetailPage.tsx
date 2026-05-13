@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useProduct } from '@/features/products/api'
+import { AddToCartButton } from '@/features/products/widgets/AddToCartButton'
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -74,7 +75,7 @@ export function ProductDetailPage() {
             </div>
           </div>
 
-          <div>
+          <div className="mb-6">
             <h2 className="text-sm font-medium text-gray-700 mb-1">Ingredients</h2>
             <div className="flex flex-wrap gap-1">
               {product.ingredients.length > 0 ? product.ingredients.map((ing) => (
@@ -92,6 +93,8 @@ export function ProductDetailPage() {
               )) : <span className="text-xs text-gray-400">No ingredients listed</span>}
             </div>
           </div>
+
+          <AddToCartButton product={product} variant="detail" />
         </div>
       </div>
     </main>

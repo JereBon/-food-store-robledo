@@ -1,5 +1,11 @@
 import { FC, useState, useEffect } from 'react'
 import { useCategories } from '../../categories/api'
+import { useIngredients } from '../../ingredients/api'
+
+export interface IIngredientSelection {
+  ingrediente_id: number
+  es_removible: boolean
+}
 
 export interface IProductFormData {
   name: string
@@ -9,6 +15,7 @@ export interface IProductFormData {
   disponible: boolean
   imagen_url?: string | null
   category_ids: number[]
+  ingredient_selections: IIngredientSelection[]
 }
 
 interface ProductFormProps {
@@ -31,9 +38,11 @@ export const ProductForm: FC<ProductFormProps> = ({
   const [disponible, setDisponible] = useState(true)
   const [imagenUrl, setImagenUrl] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<number[]>([])
+  const [selectedIngredients, setSelectedIngredients] = useState<IIngredientSelection[]>([])
   const [localError, setLocalError] = useState<string | null>(null)
 
   const { data: categories = [] } = useCategories()
+  const { data: allIngredients = [] } = useIngredients()
 
   useEffect(() => {
     if (product) {
@@ -43,17 +52,35 @@ export const ProductForm: FC<ProductFormProps> = ({
       setStock(product.stock?.toString() || '')
       setDisponible(product.disponible ?? true)
       setImagenUrl(product.imagen_url || '')
-      setSelectedCategories(
-        (product.categories || []).map((c: any) => c.id)
+      setSelectedCategories((product.categories || []).map((c: any) => c.id))
+      setSelectedIngredients(
+        (product.ingredients || []).map((i: any) => ({
+          ingrediente_id: i.id,
+          es_removible: i.es_removible,
+        }))
       )
     }
   }, [product])
 
   const toggleCategory = (catId: number) => {
     setSelectedCategories((prev) =>
-      prev.includes(catId)
-        ? prev.filter((id) => id !== catId)
-        : [...prev, catId]
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
+    )
+  }
+
+  const toggleIngredient = (ingId: number) => {
+    setSelectedIngredients((prev) => {
+      const exists = prev.find((i) => i.ingrediente_id === ingId)
+      if (exists) return prev.filter((i) => i.ingrediente_id !== ingId)
+      return [...prev, { ingrediente_id: ingId, es_removible: false }]
+    })
+  }
+
+  const toggleRemovible = (ingId: number) => {
+    setSelectedIngredients((prev) =>
+      prev.map((i) =>
+        i.ingrediente_id === ingId ? { ...i, es_removible: !i.es_removible } : i
+      )
     )
   }
 
@@ -83,6 +110,7 @@ export const ProductForm: FC<ProductFormProps> = ({
         disponible,
         imagen_url: imagenUrl.trim() || null,
         category_ids: selectedCategories,
+        ingredient_selections: selectedIngredients,
       })
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : 'An error occurred')
@@ -210,6 +238,51 @@ export const ProductForm: FC<ProductFormProps> = ({
           ))}
           {categories.length === 0 && (
             <p className="text-xs text-gray-400">No categories available</p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Ingredients
+        </label>
+        <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+          {allIngredients.map((ing) => {
+            const selected = selectedIngredients.find((s) => s.ingrediente_id === ing.id)
+            return (
+              <div key={ing.id} className="flex items-center justify-between gap-2 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={() => toggleIngredient(ing.id)}
+                    disabled={isLoading}
+                    className="h-4 w-4 text-blue-600 rounded"
+                  />
+                  <span>{ing.nombre}</span>
+                  {ing.es_alergeno && (
+                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                      Allergen
+                    </span>
+                  )}
+                </label>
+                {selected && (
+                  <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selected.es_removible}
+                      onChange={() => toggleRemovible(ing.id)}
+                      disabled={isLoading}
+                      className="h-3 w-3 rounded"
+                    />
+                    Removible
+                  </label>
+                )}
+              </div>
+            )
+          })}
+          {allIngredients.length === 0 && (
+            <p className="text-xs text-gray-400">No ingredients available</p>
           )}
         </div>
       </div>

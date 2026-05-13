@@ -4,10 +4,9 @@ import { useProducts, useDeleteProduct, useUpdateStock } from '@/features/produc
 
 export function ProductListPage() {
   const [skip, setSkip] = useState(0)
-  const [includeDeleted, setIncludeDeleted] = useState(false)
   const [stockEdit, setStockEdit] = useState<{ id: number; value: string } | null>(null)
 
-  const { data, isLoading, error } = useProducts({ skip, limit: 20 })
+  const { data, error } = useProducts({ skip, limit: 20 })
   const deleteMutation = useDeleteProduct()
   const stockMutation = useUpdateStock()
 

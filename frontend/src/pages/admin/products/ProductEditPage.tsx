@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useProduct, useUpdateProduct } from '@/features/products/api'
+import { useProduct, useUpdateProduct, useSetProductIngredients } from '@/features/products/api'
 import { ProductForm, IProductFormData } from '@/features/products/widgets/ProductForm'
 
 export function ProductEditPage() {
@@ -7,10 +7,15 @@ export function ProductEditPage() {
   const navigate = useNavigate()
   const { data: product, isLoading } = useProduct(id ? Number(id) : null)
   const updateMutation = useUpdateProduct()
+  const setIngredientsMutation = useSetProductIngredients()
 
   const handleSubmit = async (data: IProductFormData) => {
     if (!id) return
     await updateMutation.mutateAsync({ id: Number(id), data })
+    await setIngredientsMutation.mutateAsync({
+      id: Number(id),
+      ingredients: data.ingredient_selections,
+    })
     navigate('/admin/products')
   }
 
@@ -28,8 +33,8 @@ export function ProductEditPage() {
       <ProductForm
         product={product}
         onSubmit={handleSubmit}
-        isLoading={updateMutation.isPending}
-        error={updateMutation.error?.message}
+        isLoading={updateMutation.isPending || setIngredientsMutation.isPending}
+        error={updateMutation.error?.message ?? setIngredientsMutation.error?.message}
       />
     </div>
   )

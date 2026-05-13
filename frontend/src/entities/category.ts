@@ -28,4 +28,3 @@ export interface ICategoryReadShort {
   slug: string;
 }
 
-export type { ICategoryReadShort };
