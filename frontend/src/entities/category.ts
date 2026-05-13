@@ -27,3 +27,5 @@ export interface ICategoryReadShort {
   name: string;
   slug: string;
 }
+
+export type { ICategoryReadShort };

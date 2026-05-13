@@ -1,0 +1,1 @@
+export { IngredientListPage } from './IngredientListPage'

@@ -2,7 +2,7 @@
   "$schema": "https://opencode.ai/config.json",
   "skills": {
     "paths": [
-      "./.agents/skills",
+      "./.agents/skills"
     ]
   },
   "mcp": {
@@ -12,7 +12,7 @@
         "npx",
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\jerem\\Desktop\\Facultad\\4to_semestre\\2_-_MARTES_-_Gestion_de_desarrollo_de_software\\FoodStoreRobledo\\food-store"
+        "/home/lucho/Desktop/ProfeRobledo/-food-store-robledo"
       ],
       "enabled": true
     },

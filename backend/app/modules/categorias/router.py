@@ -22,7 +22,7 @@ def create_category(
 
         try:
             category = service.create(payload)
-            uow.session.commit()
+            uow.session.flush()
             uow.session.refresh(category)
             return category
         except ValueError as e:
@@ -68,7 +68,7 @@ def update_category(
         service = CategoryService(repo)
         try:
             updated_category = service.update(category, payload)
-            uow.session.commit()
+            uow.session.flush()
             uow.session.refresh(updated_category)
             return updated_category
         except ValueError as e:
@@ -89,6 +89,5 @@ def delete_category(
         service = CategoryService(repo)
         try:
             service.delete_with_validation(category)
-            uow.session.commit()
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

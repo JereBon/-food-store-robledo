@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 
 from app.modules.categorias.model import Category
 from app.modules.productos.model import Product
+from app.modules.productos.pivot import ProductCategory
 
 
 class CategoryRepository:
@@ -69,9 +70,12 @@ class CategoryRepository:
 
     def check_has_products(self, category_id: int) -> bool:
         """Check if category has any active (non-deleted) products."""
-        query = select(Product).where(
-            Product.category_id == category_id,
-            Product.deleted_at.is_(None)
+        query = (
+            select(Product)
+            .join(ProductCategory, Product.id == ProductCategory.product_id)
+            .where(
+                ProductCategory.category_id == category_id,
+                Product.deleted_at.is_(None),
+            )
         )
-        result = self.session.exec(query).first()
-        return result is not None
+        return self.session.exec(query).first() is not None
