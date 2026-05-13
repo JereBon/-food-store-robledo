@@ -1,12 +1,9 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session
 
 from app.core.deps import get_current_user, require_role
-from app.core.database import get_session
 from app.db.models import User
-from app.modules.productos.model import Product
 from app.modules.productos.repository import ProductRepository
 from app.modules.productos.service import ProductService
 from app.modules.productos.schemas import ProductCreate, ProductRead, ProductUpdate
@@ -20,7 +17,6 @@ router = APIRouter(prefix="/products", tags=["products"])
 def create_product(
     payload: ProductCreate,
     user: User = Depends(require_role(["ADMIN", "STOCK"])),
-    session: Session = Depends(get_session),
 ):
     """Create a new product (admin or stock manager only)."""
     with UnitOfWork() as uow:
@@ -29,7 +25,7 @@ def create_product(
 
         try:
             product = service.create(payload)
-            uow.commit()
+            uow.session.commit()
             uow.session.refresh(product)
             return product
         except ValueError as e:
@@ -40,13 +36,11 @@ def create_product(
 def list_products(
     category_id: Optional[int] = None,
     include_deleted: bool = False,
-    session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
     """List all products. Admins see deleted products, others don't. Can filter by category."""
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
-        # Only admins see deleted products
         include_deleted = include_deleted and any(r.code == "ADMIN" for r in (user.roles or []))
         products = repo.read_all(include_deleted=include_deleted, category_id=category_id)
         return products
@@ -55,7 +49,6 @@ def list_products(
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(
     product_id: int,
-    session: Session = Depends(get_session),
 ):
     """Get a single product by ID (public)."""
     with UnitOfWork() as uow:
@@ -71,7 +64,6 @@ def update_product(
     product_id: int,
     payload: ProductUpdate,
     user: User = Depends(require_role(["ADMIN", "STOCK"])),
-    session: Session = Depends(get_session),
 ):
     """Update a product (admin or stock manager only)."""
     with UnitOfWork() as uow:
@@ -83,7 +75,7 @@ def update_product(
         service = ProductService(repo)
         try:
             updated_product = service.update(product, payload)
-            uow.commit()
+            uow.session.commit()
             uow.session.refresh(updated_product)
             return updated_product
         except ValueError as e:
@@ -94,7 +86,6 @@ def update_product(
 def delete_product(
     product_id: int,
     user: User = Depends(require_role(["ADMIN", "STOCK"])),
-    session: Session = Depends(get_session),
 ):
     """Delete (soft delete) a product (admin or stock manager only)."""
     with UnitOfWork() as uow:
@@ -104,4 +95,4 @@ def delete_product(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
         repo.delete_soft(product)
-        uow.commit()
+        uow.session.commit()

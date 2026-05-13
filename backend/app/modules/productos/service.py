@@ -42,8 +42,7 @@ class ProductService:
             product.price = data.price
         if data.stock is not None:
             product.stock = data.stock
-        if data.category_id is not None or (data.category_id is None and hasattr(data, 'category_id')):
-            # Allow explicit None to remove category association
+        if 'category_id' in data.model_fields_set:
             product.category_id = data.category_id
 
         return self.repository.update(product)
