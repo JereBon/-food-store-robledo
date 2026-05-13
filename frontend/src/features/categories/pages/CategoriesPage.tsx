@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../api';
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useRestoreCategory } from '../api';
 import type { ICategory } from '../../../entities/category';
 import { CategoryForm } from '../widgets/CategoryForm';
 import { CategoryList } from '../widgets/CategoryList';
@@ -17,6 +17,11 @@ export const CategoriesPage: FC = () => {
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
+  const restoreMutation = useRestoreCategory();
+
+  const handleRestore = (category: ICategory) => {
+    restoreMutation.mutate(category.id);
+  };
 
   const handleOpenCreate = () => {
     setSelectedCategory(null);
@@ -97,6 +102,7 @@ export const CategoriesPage: FC = () => {
         categories={categories}
         onEdit={handleOpenEdit}
         onDelete={(category) => setDeleteConfirm(category)}
+        onRestore={handleRestore}
         isLoading={isLoading}
       />
 

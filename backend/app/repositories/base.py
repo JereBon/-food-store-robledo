@@ -44,3 +44,14 @@ class BaseRepository(Generic[T]):
 
     def hard_delete(self, obj: T) -> None:
         self.session.delete(obj)
+
+    def restore(self, obj: T) -> T:
+        """Restore a soft-deleted object by clearing its deleted_at/eliminado_en."""
+        if hasattr(obj, "eliminado_en"):
+            setattr(obj, "eliminado_en", None)
+        elif hasattr(obj, "deleted_at"):
+            setattr(obj, "deleted_at", None)
+        if hasattr(obj, "updated_at"):
+            setattr(obj, "updated_at", __import__("datetime").datetime.utcnow())
+        self.session.add(obj)
+        return obj

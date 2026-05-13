@@ -56,7 +56,7 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
             : 'bg-blue-600 text-white hover:bg-blue-700'
         } disabled:bg-gray-300 disabled:text-gray-500`}
       >
-        {added ? 'Added!' : 'Add to Cart'}
+        {added ? '¡Agregado!' : 'Agregar al carrito'}
       </button>
     )
   }
@@ -64,7 +64,7 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
   return (
     <>
       <div className="flex items-center gap-3 mb-3">
-        <label className="text-sm font-medium text-gray-700">Quantity:</label>
+        <label className="text-sm font-medium text-gray-700">Cantidad:</label>
         <div className="flex items-center border rounded">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -92,7 +92,7 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
         disabled={!product.disponible || product.stock <= 0}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors font-medium"
       >
-        Add to Cart
+        Agregar al carrito
       </button>
       {showModal && (
         <IngredientExclusionModal

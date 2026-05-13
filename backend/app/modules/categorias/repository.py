@@ -68,6 +68,13 @@ class CategoryRepository:
         self.session.add(category)
         return category
 
+    def restore(self, category: Category) -> Category:
+        """Restore a soft-deleted category."""
+        category.deleted_at = None
+        category.updated_at = datetime.utcnow()
+        self.session.add(category)
+        return category
+
     def check_has_products(self, category_id: int) -> bool:
         """Check if category has any active (non-deleted) products."""
         query = (

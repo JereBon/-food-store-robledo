@@ -89,15 +89,15 @@ export const ProductForm: FC<ProductFormProps> = ({
     setLocalError(null)
 
     if (!name.trim()) {
-      setLocalError('Product name is required')
+      setLocalError('El nombre del producto es obligatorio')
       return
     }
     if (!price || parseFloat(price) <= 0) {
-      setLocalError('Product price must be greater than 0')
+      setLocalError('El precio del producto debe ser mayor a 0')
       return
     }
     if (!stock || parseInt(stock, 10) < 0) {
-      setLocalError('Product stock cannot be negative')
+      setLocalError('El stock del producto no puede ser negativo')
       return
     }
 
@@ -113,7 +113,7 @@ export const ProductForm: FC<ProductFormProps> = ({
         ingredient_selections: selectedIngredients,
       })
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'An error occurred')
+      setLocalError(err instanceof Error ? err.message : 'Ocurrió un error')
     }
   }
 
@@ -127,14 +127,14 @@ export const ProductForm: FC<ProductFormProps> = ({
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Product Name *
+          Nombre del producto *
         </label>
         <input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter product name"
+          placeholder="Ingresa el nombre del producto"
           required
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
@@ -143,13 +143,13 @@ export const ProductForm: FC<ProductFormProps> = ({
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
+          Descripción
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter product description (optional)"
+          placeholder="Ingresa la descripción del producto"
           rows={3}
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
@@ -159,7 +159,7 @@ export const ProductForm: FC<ProductFormProps> = ({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-            Price * (USD)
+            Precio * (ARS)
           </label>
           <input
             id="price"
@@ -193,13 +193,13 @@ export const ProductForm: FC<ProductFormProps> = ({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Image URL
+          URL de la imagen
         </label>
         <input
           type="url"
           value={imagenUrl}
           onChange={(e) => setImagenUrl(e.target.value)}
-          placeholder="https://example.com/image.jpg (optional)"
+          placeholder="https://ejemplo.com/imagen.jpg (opcional)"
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
         />
@@ -215,13 +215,13 @@ export const ProductForm: FC<ProductFormProps> = ({
           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
         />
         <label htmlFor="disponible" className="text-sm font-medium text-gray-700">
-          Available
+          Disponible
         </label>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Categories
+          Categorías
         </label>
         <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
           {categories.map((cat) => (
@@ -237,14 +237,14 @@ export const ProductForm: FC<ProductFormProps> = ({
             </label>
           ))}
           {categories.length === 0 && (
-            <p className="text-xs text-gray-400">No categories available</p>
+            <p className="text-xs text-gray-400">No hay categorías disponibles</p>
           )}
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Ingredients
+          Ingredientes
         </label>
         <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
           {allIngredients.map((ing) => {
@@ -262,7 +262,7 @@ export const ProductForm: FC<ProductFormProps> = ({
                   <span>{ing.nombre}</span>
                   {ing.es_alergeno && (
                     <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
-                      Allergen
+                      Alérgeno
                     </span>
                   )}
                 </label>
@@ -282,7 +282,7 @@ export const ProductForm: FC<ProductFormProps> = ({
             )
           })}
           {allIngredients.length === 0 && (
-            <p className="text-xs text-gray-400">No ingredients available</p>
+            <p className="text-xs text-gray-400">No hay ingredientes disponibles</p>
           )}
         </div>
       </div>
@@ -292,7 +292,7 @@ export const ProductForm: FC<ProductFormProps> = ({
         disabled={isLoading}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
       >
-        {isLoading ? 'Saving...' : product ? 'Update Product' : 'Create Product'}
+        {isLoading ? 'Guardando...' : product ? 'Actualizar Producto' : 'Crear Producto'}
       </button>
     </form>
   )

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.core.deps import get_current_user, require_role
+from app.core.deps import get_current_user, get_optional_user, require_role
 from app.db.models import User
 from app.modules.ingredientes.repository import IngredienteRepository
 from app.modules.ingredientes.service import IngredienteService
@@ -36,10 +36,11 @@ def create_ingredient(
 def list_ingredients(
     es_alergeno: bool | None = None,
     include_deleted: bool = False,
-    user: User = Depends(get_current_user),
+    user: User | None = Depends(get_optional_user),
 ):
     with UnitOfWork() as uow:
         repo = IngredienteRepository(uow.session)
+        include_deleted = include_deleted and user is not None and any(r.code == "ADMIN" for r in (user.roles or []))
         return repo.list_filtered(include_deleted=include_deleted, es_alergeno=es_alergeno)
 
 
@@ -64,7 +65,7 @@ def update_ingredient(
     with UnitOfWork() as uow:
         repo = IngredienteRepository(uow.session)
         ingredient = repo.get_by_id(ingredient_id)
-        if not ingredient or ingredient.deleted_at is not None:
+        if not ingredient:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not found"
             )
@@ -86,8 +87,33 @@ def delete_ingredient(
     with UnitOfWork() as uow:
         repo = IngredienteRepository(uow.session)
         ingredient = repo.get_by_id(ingredient_id)
-        if not ingredient or ingredient.deleted_at is not None:
+        if not ingredient:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not found"
             )
-        repo.soft_delete(ingredient)
+
+        if ingredient.deleted_at is None:
+            repo.soft_delete(ingredient)
+
+
+@router.patch("/{ingredient_id}/restore", response_model=IngredienteRead)
+def restore_ingredient(
+    ingredient_id: int,
+    user: User = Depends(require_role(["ADMIN"])),
+):
+    with UnitOfWork() as uow:
+        repo = IngredienteRepository(uow.session)
+        ingredient = repo.get_by_id(ingredient_id)
+        if not ingredient:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Ingredient not found"
+            )
+        if ingredient.deleted_at is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Ingredient is not deleted"
+            )
+
+        repo.restore(ingredient)
+        uow.session.flush()
+        uow.session.refresh(ingredient)
+        return ingredient

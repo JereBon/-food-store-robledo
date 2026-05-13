@@ -23,9 +23,9 @@ export function IngredientExclusionModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-        <h2 className="text-lg font-bold mb-4">Customize Your Product</h2>
+        <h2 className="text-lg font-bold mb-4">Personaliza tu producto</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Select ingredients you want to remove:
+          Selecciona los ingredientes que quieras quitar:
         </p>
         <div className="space-y-2 mb-6">
           {ingredients.map((ing) => (
@@ -45,11 +45,11 @@ export function IngredientExclusionModal({
               </div>
               {ing.es_alergeno && (
                 <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">
-                  Allergen
+                  Alérgeno
                 </span>
               )}
               {!ing.es_removible && (
-                <span className="text-xs text-gray-400">Required</span>
+                <span className="text-xs text-gray-400">                  Obligatorio</span>
               )}
             </label>
           ))}
@@ -59,13 +59,13 @@ export function IngredientExclusionModal({
             onClick={() => onConfirm(excluded)}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Add to Cart
+            Agregar al carrito
           </button>
           <button
             onClick={onCancel}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
       </div>

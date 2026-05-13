@@ -20,16 +20,16 @@ export function ProductEditPage() {
   }
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">Loading...</div>
+    return <div className="p-6 text-center text-gray-500">Cargando...</div>
   }
 
   if (!product) {
-    return <div className="p-6 text-center text-gray-500">Product not found.</div>
+    return <div className="p-6 text-center text-gray-500">Producto no encontrado.</div>
   }
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Edit Product</h1>
+      <h1 className="text-3xl font-bold mb-6">Editar Producto</h1>
       <ProductForm
         product={product}
         onSubmit={handleSubmit}

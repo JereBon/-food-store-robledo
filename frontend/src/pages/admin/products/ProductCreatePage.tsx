@@ -20,7 +20,7 @@ export function ProductCreatePage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Create Product</h1>
+      <h1 className="text-3xl font-bold mb-6">Crear Producto</h1>
       <ProductForm
         onSubmit={handleSubmit}
         isLoading={createMutation.isPending}

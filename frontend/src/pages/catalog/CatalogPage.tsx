@@ -26,7 +26,7 @@ export function CatalogPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-6">Catalog</h1>
+      <h1 className="text-3xl font-bold text-slate-900 mb-6">Catálogo</h1>
 
       <div className="flex flex-wrap gap-4 mb-6">
         <form onSubmit={handleSearch} className="flex gap-2">
@@ -34,14 +34,14 @@ export function CatalogPage() {
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search products..."
+            placeholder="Buscar productos..."
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Search
+            Buscar
           </button>
         </form>
 
@@ -53,7 +53,7 @@ export function CatalogPage() {
           }}
           className="px-3 py-2 border border-gray-300 rounded-md"
         >
-          <option value="">All Categories</option>
+          <option value="">Todas las categorías</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
@@ -93,9 +93,9 @@ export function CatalogPage() {
                     />
                   )}
                   <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-gray-600">${Number(product.price).toFixed(2)}</p>
+                  <p className="text-gray-600">${Number(product.price).toFixed(2)} ARS</p>
                   <p className="text-sm text-gray-500">
-                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                    {product.stock > 0 ? `${product.stock} en stock` : <span className="text-orange-600 font-medium">No disponible</span>}
                   </p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {product.categories.map((cat) => (
@@ -116,25 +116,25 @@ export function CatalogPage() {
               disabled={skip === 0}
               className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-50"
             >
-              Previous
+              Anterior
             </button>
             <span className="px-4 py-2 text-sm text-gray-600">
-              {skip + 1} - {Math.min(skip + 20, data.total)} of {data.total}
+              {skip + 1} - {Math.min(skip + 20, data.total)} de {data.total}
             </span>
             <button
               onClick={() => setSkip(skip + 20)}
               disabled={skip + 20 >= data.total}
               className="px-4 py-2 border rounded-md disabled:opacity-50 hover:bg-gray-50"
             >
-              Next
+              Siguiente
             </button>
           </div>
         </>
       ) : (
         <div className="text-center py-12 text-gray-500">
           {search || categoryFilter
-            ? 'No products match your search criteria.'
-            : 'No products available yet.'}
+            ? 'No hay productos que coincidan con tu búsqueda.'
+            : 'No hay productos disponibles aún.'}
         </div>
       )}
     </main>

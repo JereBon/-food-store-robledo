@@ -46,5 +46,5 @@
 ## 7. Tests
 
 - [x] 7.1 Tests del cartStore: addItem, updateQuantity, removeItem, clearCart, selectores
-- [ ] 7.2 Tests de CartDrawer: render, open/close, item list, empty state
-- [ ] 7.3 Tests de CartPage: full summary, quantity controls, clear cart confirmation
+- [x] 7.2 Tests de CartDrawer: render, open/close, item list, empty state
+- [x] 7.3 Tests de CartPage: full summary, quantity controls, clear cart confirmation

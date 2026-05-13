@@ -123,12 +123,40 @@ export const useDeleteCategory = (): UseMutationResult<
         await http.delete(`/categories/${categoryId}`);
       } catch (err: any) {
         if (err.response?.status === 403) {
-          throw new Error('You do not have permission to delete categories (admin only)');
+          throw new Error('No tienes permisos para eliminar categorías (solo admin)');
         }
         if (err.response?.status === 400) {
-          throw new Error(err.response?.data?.detail || 'Cannot delete category with active products');
+          throw new Error(err.response?.data?.detail || 'No se puede eliminar la categoría con productos activos');
         }
-        throw new Error(err.response?.data?.detail || err.message || 'Failed to delete category');
+        throw new Error(err.response?.data?.detail || err.message || 'Error al eliminar la categoría');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+  });
+};
+
+/**
+ * Restore a soft-deleted category (admin only)
+ */
+export const useRestoreCategory = (): UseMutationResult<
+  ICategory,
+  Error,
+  number
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (categoryId: number) => {
+      try {
+        const { data } = await http.patch<ICategory>(`/categories/${categoryId}/restore`);
+        return data;
+      } catch (err: any) {
+        if (err.response?.status === 403) {
+          throw new Error('No tienes permisos para restaurar categorías (solo admin)');
+        }
+        throw new Error(err.response?.data?.detail || err.message || 'Error al restaurar la categoría');
       }
     },
     onSuccess: () => {

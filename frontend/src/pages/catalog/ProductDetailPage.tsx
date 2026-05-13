@@ -22,9 +22,9 @@ export function ProductDetailPage() {
     return (
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h1>
-          <p className="text-gray-500 mb-4">{error?.message || 'The product you are looking for does not exist.'}</p>
-          <Link to="/catalog" className="text-blue-600 hover:underline">Back to Catalog</Link>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Producto no encontrado</h1>
+          <p className="text-gray-500 mb-4">{error?.message || 'El producto que buscas no existe.'}</p>
+          <Link to="/catalog" className="text-blue-600 hover:underline">Volver al Catálogo</Link>
         </div>
       </main>
     )
@@ -32,20 +32,20 @@ export function ProductDetailPage() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
-      <Link to="/catalog" className="text-blue-600 hover:underline mb-4 inline-block">&larr; Back to Catalog</Link>
+      <Link to="/catalog" className="text-blue-600 hover:underline mb-4 inline-block">&larr; Volver al Catálogo</Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {product.imagen_url ? (
           <img src={product.imagen_url} alt={product.name} className="w-full rounded-lg shadow-md" />
         ) : (
           <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-            No image
+            Sin imagen
           </div>
         )}
 
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">{product.name}</h1>
-          <p className="text-2xl text-blue-600 font-semibold mb-4">${Number(product.price).toFixed(2)}</p>
+          <p className="text-2xl text-blue-600 font-semibold mb-4">${Number(product.price).toFixed(2)} ARS</p>
 
           {product.description && (
             <p className="text-gray-600 mb-4">{product.description}</p>
@@ -55,28 +55,28 @@ export function ProductDetailPage() {
             <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
               product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}>
-              {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+              {product.stock > 0 ? `En stock (${product.stock})` : 'No disponible'}
             </span>
             {!product.disponible && (
               <span className="ml-2 inline-block px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                Temporarily Unavailable
+                No disponible temporalmente
               </span>
             )}
           </div>
 
           <div className="mb-4">
-            <h2 className="text-sm font-medium text-gray-700 mb-1">Categories</h2>
+            <h2 className="text-sm font-medium text-gray-700 mb-1">Categorías</h2>
             <div className="flex flex-wrap gap-1">
               {product.categories.length > 0 ? product.categories.map((cat) => (
                 <span key={cat.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
                   {cat.name}
                 </span>
-              )) : <span className="text-xs text-gray-400">No categories</span>}
+              )) : <span className="text-xs text-gray-400">Sin categorías</span>}
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="text-sm font-medium text-gray-700 mb-1">Ingredients</h2>
+            <h2 className="text-sm font-medium text-gray-700 mb-1">Ingredientes</h2>
             <div className="flex flex-wrap gap-1">
               {product.ingredients.length > 0 ? product.ingredients.map((ing) => (
                 <span
@@ -90,7 +90,7 @@ export function ProductDetailPage() {
                   {ing.nombre}
                   {ing.es_alergeno && ' ⚠'}
                 </span>
-              )) : <span className="text-xs text-gray-400">No ingredients listed</span>}
+              )) : <span className="text-xs text-gray-400">Sin ingredientes listados</span>}
             </div>
           </div>
 

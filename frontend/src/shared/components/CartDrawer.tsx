@@ -24,7 +24,7 @@ export function CartDrawer() {
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center p-4 border-b">
             <h2 className="text-lg font-bold">
-              Cart ({totalItems()} items)
+              Carrito ({totalItems()} artículos)
             </h2>
             <button
               onClick={() => setCartOpen(false)}
@@ -37,13 +37,13 @@ export function CartDrawer() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {items.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                <p>Your cart is empty</p>
+                <p>Tu carrito está vacío</p>
                 <Link
                   to="/catalog"
                   onClick={() => setCartOpen(false)}
                   className="text-blue-600 hover:underline text-sm mt-2 inline-block"
                 >
-                  Browse catalog
+                  Ver catálogo
                 </Link>
               </div>
             ) : (
@@ -53,19 +53,19 @@ export function CartDrawer() {
                     <div>
                       <h3 className="font-medium text-sm">{item.name}</h3>
                       <p className="text-sm text-gray-600">
-                        ${item.price.toFixed(2)} each
+                        ${item.price.toFixed(2)} ARS c/u
                       </p>
                     </div>
                     <button
                       onClick={() => removeItem(item.productId)}
                       className="text-red-500 hover:text-red-700 text-xs"
                     >
-                      Remove
+                      Eliminar
                     </button>
                   </div>
                   {item.exclusions.length > 0 && (
                     <p className="text-xs text-gray-500 mb-2">
-                      No: {item.exclusions.join(', ')}
+                      Sin: {item.exclusions.join(', ')}
                     </p>
                   )}
                   <div className="flex items-center justify-between">
@@ -91,7 +91,7 @@ export function CartDrawer() {
                       </button>
                     </div>
                     <span className="text-sm font-medium">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${(item.price * item.quantity).toFixed(2)} ARS
                     </span>
                   </div>
                 </div>
@@ -103,14 +103,14 @@ export function CartDrawer() {
             <div className="border-t p-4 space-y-3">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span>${totalPrice().toFixed(2)}</span>
+                <span>${totalPrice().toFixed(2)} ARS</span>
               </div>
               <Link
                 to="/cart"
                 onClick={() => setCartOpen(false)}
                 className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
               >
-                View Cart
+                Ver Carrito
               </Link>
             </div>
           )}

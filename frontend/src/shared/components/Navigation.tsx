@@ -23,13 +23,13 @@ export const Navigation: FC = () => {
               to="/"
               className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
             >
-              Home
+              Inicio
             </Link>
             <Link
               to="/catalog"
               className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
             >
-              Catalog
+              Catálogo
             </Link>
 
             {isAdmin && (
@@ -37,7 +37,7 @@ export const Navigation: FC = () => {
                 to="/admin/categories"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
               >
-                Categories
+                Categorías
               </Link>
             )}
             {isAdmin && (
@@ -45,7 +45,7 @@ export const Navigation: FC = () => {
                 to="/admin/products"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
               >
-                Products
+                Productos
               </Link>
             )}
             {isAdmin && (
@@ -53,7 +53,7 @@ export const Navigation: FC = () => {
                 to="/admin/ingredients"
                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
               >
-                Ingredients
+                Ingredientes
               </Link>
             )}
 
@@ -81,7 +81,7 @@ export const Navigation: FC = () => {
                   onClick={() => useAuthStore.getState().clearSession()}
                   className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-bold transition-colors"
                 >
-                  Logout
+                  Cerrar sesión
                 </button>
               </div>
             ) : (
@@ -90,13 +90,13 @@ export const Navigation: FC = () => {
                   to="/login"
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm font-bold transition-colors"
                 >
-                  Login
+                  Iniciar sesión
                 </Link>
                 <Link
                   to="/register"
                   className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md text-sm font-bold transition-colors"
                 >
-                  Register
+                  Registrarse
                 </Link>
               </div>
             )}

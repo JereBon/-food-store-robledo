@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import select
 
-from app.core.deps import get_current_user, require_role
+from app.core.deps import get_current_user, get_optional_user, require_role
 from app.db.models import User
 from app.modules.productos.pivot import ProductIngredient
 from app.modules.productos.repository import ProductRepository
@@ -57,7 +57,7 @@ def list_products(
     search: Optional[str] = Query(default=None),
     category_id: Optional[int] = Query(default=None),
     include_deleted: bool = False,
-    user: Optional[User] = Depends(get_current_user),
+    user: Optional[User] = Depends(get_optional_user),
 ):
     is_admin = user is not None and any(r.code == "ADMIN" for r in (user.roles or []))
     include_deleted = include_deleted and is_admin
@@ -84,7 +84,7 @@ def get_product(product_id: int):
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
         product = repo.get_by_id(product_id)
-        if not product or product.deleted_at is not None:
+        if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
         return _load(product, uow.session)
 
@@ -98,7 +98,7 @@ def update_product(
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
         product = repo.get_by_id(product_id)
-        if not product or product.deleted_at is not None:
+        if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
         service = ProductService(repo)
@@ -120,7 +120,7 @@ def update_product_stock(
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
         product = repo.get_by_id(product_id)
-        if not product or product.deleted_at is not None:
+        if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
         service = ProductService(repo)
@@ -142,7 +142,7 @@ def set_product_ingredients(
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
         product = repo.get_by_id(product_id)
-        if not product or product.deleted_at is not None:
+        if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
         ingredient_ids = [d["ingrediente_id"] for d in ingredient_data]
@@ -166,7 +166,27 @@ def delete_product(
     with UnitOfWork() as uow:
         repo = ProductRepository(uow.session)
         product = repo.get_by_id(product_id)
-        if not product or product.deleted_at is not None:
+        if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
 
-        repo.soft_delete(product)
+        if product.deleted_at is None:
+            repo.soft_delete(product)
+
+
+@router.patch("/{product_id}/restore", response_model=ProductRead)
+def restore_product(
+    product_id: int,
+    user: User = Depends(require_role(["ADMIN", "STOCK"])),
+):
+    with UnitOfWork() as uow:
+        repo = ProductRepository(uow.session)
+        product = repo.get_by_id(product_id)
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+        if product.deleted_at is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product is not deleted")
+
+        repo.restore(product)
+        uow.session.flush()
+        uow.session.refresh(product)
+        return _load(product, uow.session)

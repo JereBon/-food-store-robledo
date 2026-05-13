@@ -8,6 +8,7 @@ interface ProductListParams {
   limit?: number
   search?: string
   category_id?: number
+  include_deleted?: boolean
 }
 
 export const useProducts = (
@@ -21,6 +22,7 @@ export const useProducts = (
       if (params?.limit) sp.set('limit', String(params.limit))
       if (params?.search) sp.set('search', params.search)
       if (params?.category_id) sp.set('category_id', String(params.category_id))
+      if (params?.include_deleted) sp.set('include_deleted', 'true')
       const { data } = await http.get<IProductListResponse>(`/products?${sp}`)
       return data
     },
@@ -75,6 +77,19 @@ export const useDeleteProduct = (): UseMutationResult<void, Error, number> => {
   return useMutation({
     mutationFn: async (id: number) => {
       await http.delete(`/products/${id}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
+export const useRestoreProduct = (): UseMutationResult<IProduct, Error, number> => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await http.patch<IProduct>(`/products/${id}/restore`)
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
