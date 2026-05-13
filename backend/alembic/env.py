@@ -8,6 +8,8 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db import models  # noqa: F401
+from app.modules.categorias import model as _cat_model  # noqa: F401
+from app.modules.productos import model as _prod_model  # noqa: F401
 from sqlmodel import SQLModel
 
 
