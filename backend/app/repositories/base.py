@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, SQLModel, select, func
 
 
 T = TypeVar("T", bound=SQLModel)
@@ -21,7 +21,7 @@ class BaseRepository(Generic[T]):
         return list(self.session.exec(stmt).all())
 
     def count(self) -> int:
-        return len(self.session.exec(select(self.model)).all())
+        return self.session.exec(select(func.count()).select_from(self.model)).one()
 
     def create(self, obj: T) -> T:
         self.session.add(obj)

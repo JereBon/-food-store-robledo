@@ -40,12 +40,7 @@ def list_ingredients(
 ):
     with UnitOfWork() as uow:
         repo = IngredienteRepository(uow.session)
-        stmt = repo.list_all()
-        if not include_deleted:
-            stmt = [i for i in stmt if i.deleted_at is None]
-        if es_alergeno is not None:
-            stmt = [i for i in stmt if i.es_alergeno == es_alergeno]
-        return stmt
+        return repo.list_filtered(include_deleted=include_deleted, es_alergeno=es_alergeno)
 
 
 @router.get("/{ingredient_id}", response_model=IngredienteRead)
