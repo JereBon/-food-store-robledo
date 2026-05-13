@@ -47,5 +47,8 @@ Lo único que puede quedar en inglés es:
 
 Al momento de iniciar o finalizar cualquier Change, es tu obligación ejecutar automáticamente las directivas de la skill ubicada en `.agents/skills/git_workflow/SKILL.md`. Guía al usuario en el proceso de verificación y merge sin que él te lo tenga que pedir.
 
+## Actualización de Changes Map
+**OBLIGATORIO**: Una vez que el Change esté archivado y pusheado a `main` en GitHub, debes actualizar el archivo `docs/changes-map.md` marcando el Change correspondiente como ✅ Completado (o el estado que corresponda). Esto mantiene el mapa de cambios sincronizado con el estado real del proyecto.
+
 ## Skills del Proyecto (uso obligatorio)
 - `engram-memory-workflow` — Sincronización de memoria persistente con Engram (ver `.agents/skills/engram-memory-workflow/SKILL.md`).
