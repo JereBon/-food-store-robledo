@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, SQLModel, select, func
 
 
 T = TypeVar("T", bound=SQLModel)
@@ -21,7 +21,7 @@ class BaseRepository(Generic[T]):
         return list(self.session.exec(stmt).all())
 
     def count(self) -> int:
-        return len(self.session.exec(select(self.model)).all())
+        return self.session.exec(select(func.count()).select_from(self.model)).one()
 
     def create(self, obj: T) -> T:
         self.session.add(obj)
@@ -44,3 +44,14 @@ class BaseRepository(Generic[T]):
 
     def hard_delete(self, obj: T) -> None:
         self.session.delete(obj)
+
+    def restore(self, obj: T) -> T:
+        """Restore a soft-deleted object by clearing its deleted_at/eliminado_en."""
+        if hasattr(obj, "eliminado_en"):
+            setattr(obj, "eliminado_en", None)
+        elif hasattr(obj, "deleted_at"):
+            setattr(obj, "deleted_at", None)
+        if hasattr(obj, "updated_at"):
+            setattr(obj, "updated_at", __import__("datetime").datetime.utcnow())
+        self.session.add(obj)
+        return obj

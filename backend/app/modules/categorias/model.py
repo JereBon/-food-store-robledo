@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.modules.productos.pivot import ProductCategory
 
 
 class Category(SQLModel, table=True):
@@ -15,8 +17,10 @@ class Category(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     deleted_at: Optional[datetime] = Field(default=None)
 
-    products: list["Product"] = Relationship(back_populates="category")  # type: ignore
+    products: List["Product"] = Relationship(
+        back_populates="categories",
+        link_model=ProductCategory,
+    )
 
 
-# Import at the end to avoid circular imports
 from app.modules.productos.model import Product  # noqa: E402, F401

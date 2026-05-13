@@ -78,7 +78,7 @@ export function RegisterForm() {
           
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email
+              Correo electrónico
             </label>
             <input
               className="block w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"

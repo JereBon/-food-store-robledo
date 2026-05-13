@@ -1,65 +1,104 @@
-import { FC, useState, useEffect } from 'react';
-import { CategorySelect } from '../../categories/widgets/CategorySelect';
+import { FC, useState, useEffect } from 'react'
+import { useCategories } from '../../categories/api'
+import { useIngredients } from '../../ingredients/api'
+
+export interface IIngredientSelection {
+  ingrediente_id: number
+  es_removible: boolean
+}
 
 export interface IProductFormData {
-  name: string;
-  description?: string | null;
-  price: number;
-  stock: number;
-  category_id?: number | null;
+  name: string
+  description?: string | null
+  price: number
+  stock: number
+  disponible: boolean
+  imagen_url?: string | null
+  category_ids: number[]
+  ingredient_selections: IIngredientSelection[]
 }
 
 interface ProductFormProps {
-  product?: any; // Product data if editing
-  onSubmit: (data: IProductFormData) => void | Promise<void>;
-  isLoading?: boolean;
-  error?: string | null;
+  product?: any
+  onSubmit: (data: IProductFormData) => void | Promise<void>
+  isLoading?: boolean
+  error?: string | null
 }
 
-/**
- * ProductForm - form for creating or editing a product with category selection
- */
 export const ProductForm: FC<ProductFormProps> = ({
   product,
   onSubmit,
   isLoading,
   error,
 }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [price, setPrice] = useState('')
+  const [stock, setStock] = useState('')
+  const [disponible, setDisponible] = useState(true)
+  const [imagenUrl, setImagenUrl] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([])
+  const [selectedIngredients, setSelectedIngredients] = useState<IIngredientSelection[]>([])
+  const [localError, setLocalError] = useState<string | null>(null)
+
+  const { data: categories = [] } = useCategories()
+  const { data: allIngredients = [] } = useIngredients()
 
   useEffect(() => {
     if (product) {
-      setName(product.name || '');
-      setDescription(product.description || '');
-      setPrice(product.price?.toString() || '');
-      setStock(product.stock?.toString() || '');
-      setCategoryId(product.category_id || null);
+      setName(product.name || '')
+      setDescription(product.description || '')
+      setPrice(product.price?.toString() || '')
+      setStock(product.stock?.toString() || '')
+      setDisponible(product.disponible ?? true)
+      setImagenUrl(product.imagen_url || '')
+      setSelectedCategories((product.categories || []).map((c: any) => c.id))
+      setSelectedIngredients(
+        (product.ingredients || []).map((i: any) => ({
+          ingrediente_id: i.id,
+          es_removible: i.es_removible,
+        }))
+      )
     }
-  }, [product]);
+  }, [product])
+
+  const toggleCategory = (catId: number) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catId) ? prev.filter((id) => id !== catId) : [...prev, catId]
+    )
+  }
+
+  const toggleIngredient = (ingId: number) => {
+    setSelectedIngredients((prev) => {
+      const exists = prev.find((i) => i.ingrediente_id === ingId)
+      if (exists) return prev.filter((i) => i.ingrediente_id !== ingId)
+      return [...prev, { ingrediente_id: ingId, es_removible: false }]
+    })
+  }
+
+  const toggleRemovible = (ingId: number) => {
+    setSelectedIngredients((prev) =>
+      prev.map((i) =>
+        i.ingrediente_id === ingId ? { ...i, es_removible: !i.es_removible } : i
+      )
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocalError(null);
+    e.preventDefault()
+    setLocalError(null)
 
-    // Validation
     if (!name.trim()) {
-      setLocalError('Product name is required');
-      return;
+      setLocalError('El nombre del producto es obligatorio')
+      return
     }
-
     if (!price || parseFloat(price) <= 0) {
-      setLocalError('Product price must be greater than 0');
-      return;
+      setLocalError('El precio del producto debe ser mayor a 0')
+      return
     }
-
     if (!stock || parseInt(stock, 10) < 0) {
-      setLocalError('Product stock cannot be negative');
-      return;
+      setLocalError('El stock del producto no puede ser negativo')
+      return
     }
 
     try {
@@ -68,12 +107,15 @@ export const ProductForm: FC<ProductFormProps> = ({
         description: description.trim() || null,
         price: parseFloat(price),
         stock: parseInt(stock, 10),
-        category_id: categoryId,
-      });
+        disponible,
+        imagen_url: imagenUrl.trim() || null,
+        category_ids: selectedCategories,
+        ingredient_selections: selectedIngredients,
+      })
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'An error occurred');
+      setLocalError(err instanceof Error ? err.message : 'Ocurrió un error')
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
@@ -85,14 +127,14 @@ export const ProductForm: FC<ProductFormProps> = ({
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Product Name *
+          Nombre del producto *
         </label>
         <input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter product name"
+          placeholder="Ingresa el nombre del producto"
           required
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
@@ -101,13 +143,13 @@ export const ProductForm: FC<ProductFormProps> = ({
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
+          Descripción
         </label>
         <textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter product description (optional)"
+          placeholder="Ingresa la descripción del producto"
           rows={3}
           disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
@@ -117,7 +159,7 @@ export const ProductForm: FC<ProductFormProps> = ({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-            Price * (USD)
+            Precio * (ARS)
           </label>
           <input
             id="price"
@@ -131,7 +173,6 @@ export const ProductForm: FC<ProductFormProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
           />
         </div>
-
         <div>
           <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
             Stock *
@@ -150,23 +191,111 @@ export const ProductForm: FC<ProductFormProps> = ({
         </div>
       </div>
 
-      <CategorySelect
-        value={categoryId}
-        onChange={setCategoryId}
-        disabled={isLoading}
-        label="Category"
-        placeholder="Select a category (optional)"
-      />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          URL de la imagen
+        </label>
+        <input
+          type="url"
+          value={imagenUrl}
+          onChange={(e) => setImagenUrl(e.target.value)}
+          placeholder="https://ejemplo.com/imagen.jpg (opcional)"
+          disabled={isLoading}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          id="disponible"
+          type="checkbox"
+          checked={disponible}
+          onChange={(e) => setDisponible(e.target.checked)}
+          disabled={isLoading}
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+        />
+        <label htmlFor="disponible" className="text-sm font-medium text-gray-700">
+          Disponible
+        </label>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Categorías
+        </label>
+        <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+          {categories.map((cat) => (
+            <label key={cat.id} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(cat.id)}
+                onChange={() => toggleCategory(cat.id)}
+                disabled={isLoading}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              {cat.name}
+            </label>
+          ))}
+          {categories.length === 0 && (
+            <p className="text-xs text-gray-400">No hay categorías disponibles</p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Ingredientes
+        </label>
+        <div className="space-y-1 max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+          {allIngredients.map((ing) => {
+            const selected = selectedIngredients.find((s) => s.ingrediente_id === ing.id)
+            return (
+              <div key={ing.id} className="flex items-center justify-between gap-2 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!selected}
+                    onChange={() => toggleIngredient(ing.id)}
+                    disabled={isLoading}
+                    className="h-4 w-4 text-blue-600 rounded"
+                  />
+                  <span>{ing.nombre}</span>
+                  {ing.es_alergeno && (
+                    <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                      Alérgeno
+                    </span>
+                  )}
+                </label>
+                {selected && (
+                  <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selected.es_removible}
+                      onChange={() => toggleRemovible(ing.id)}
+                      disabled={isLoading}
+                      className="h-3 w-3 rounded"
+                    />
+                    Removible
+                  </label>
+                )}
+              </div>
+            )
+          })}
+          {allIngredients.length === 0 && (
+            <p className="text-xs text-gray-400">No hay ingredientes disponibles</p>
+          )}
+        </div>
+      </div>
 
       <button
         type="submit"
         disabled={isLoading}
         className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-medium"
       >
-        {isLoading ? 'Saving...' : product ? 'Update Product' : 'Create Product'}
+        {isLoading ? 'Guardando...' : product ? 'Actualizar Producto' : 'Crear Producto'}
       </button>
     </form>
-  );
-};
+  )
+}
 
-export default ProductForm;
+export default ProductForm

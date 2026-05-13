@@ -28,6 +28,20 @@ Antes de implementar código, debes consultar obligatoriamente los documentos de
 3. Genera o modifica el código respetando el flujo de dependencias.
 4. Asegúrate de no introducir deuda técnica ni violar los patrones de arquitectura base.
 
+## Regla de Idioma (OBLIGATORIO)
+TODA la interfaz de usuario (UI) debe estar en ESPAÑOL. Esto incluye:
+- Textos visibles en componentes (títulos, botones, labels, mensajes, placeholders)
+- Mensajes de error y validación mostrados al usuario
+- Texto alternativo (alt text) en imágenes
+- Notificaciones y toasts
+- Tooltips y descripciones
+
+Lo único que puede quedar en inglés es:
+- Código fuente (nombres de variables, funciones, tipos, props)
+- Comentarios técnicos en el código
+- Archivos de configuración
+- Mensajes de commit
+
 ## Piloto Automático de Git
 **CRÍTICO**: Al iniciar y al finalizar cualquier Change, el orquestador y el agente ejecutor deben aplicar obligatoriamente el flujo descrito en la skill `git_workflow` (branching → merge --no-ff → push) para mantener el historial de GitHub limpio y segmentado.
 

@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { useCategories } from '../api';
 import type { ICategory } from '../../../entities/category';
 
@@ -19,8 +19,8 @@ export const CategorySelect: FC<CategorySelectProps> = ({
   onChange,
   disabled,
   required,
-  label = 'Category',
-  placeholder = 'Select a category...',
+  label = 'Categoría',
+  placeholder = 'Selecciona una categoría...',
 }) => {
   const { data: categories = [], isLoading, error } = useCategories();
 
@@ -32,7 +32,7 @@ export const CategorySelect: FC<CategorySelectProps> = ({
   if (error) {
     return (
       <div className="text-red-600 text-sm">
-        Failed to load categories
+        Error al cargar las categorías
       </div>
     );
   }
@@ -60,7 +60,7 @@ export const CategorySelect: FC<CategorySelectProps> = ({
         ))}
       </select>
       {isLoading && (
-        <p className="text-xs text-gray-500">Loading categories...</p>
+        <p className="text-xs text-gray-500">Cargando categorías...</p>
       )}
     </div>
   );

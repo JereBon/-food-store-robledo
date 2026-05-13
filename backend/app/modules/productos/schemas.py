@@ -1,54 +1,63 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class CategoryReadShort(BaseModel):
-    """Short category info for product responses."""
-
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     slug: str
 
-    class Config:
-        from_attributes = True
+
+class IngredientReadShort(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    nombre: str
+    es_alergeno: bool
+    es_removible: bool = False
 
 
 class ProductBase(BaseModel):
-    """Base product schema with common fields."""
-
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=1000)
-    price: float = Field(..., gt=0, description="Product price (must be > 0)")
+    price: Decimal = Field(..., gt=0)
     stock: int = Field(default=0, ge=0)
-    category_id: Optional[int] = Field(default=None, description="Category ID (optional)")
+    disponible: bool = Field(default=True)
+    imagen_url: Optional[str] = Field(default=None, max_length=500)
+    category_ids: list[int] = Field(default_factory=list)
 
 
 class ProductCreate(ProductBase):
-    """Schema for creating a new product."""
-
     pass
 
 
 class ProductUpdate(BaseModel):
-    """Schema for updating a product."""
-
     name: Optional[str] = Field(default=None, min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=1000)
-    price: Optional[float] = Field(default=None, gt=0)
+    price: Optional[Decimal] = Field(default=None, gt=0)
     stock: Optional[int] = Field(default=None, ge=0)
-    category_id: Optional[int] = Field(default=None)
+    disponible: Optional[bool] = Field(default=None)
+    imagen_url: Optional[str] = Field(default=None, max_length=500)
+    category_ids: Optional[list[int]] = Field(default=None)
 
 
 class ProductRead(ProductBase):
-    """Schema for reading/returning product data."""
-
     id: int
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
-    category: Optional[CategoryReadShort] = None
+    categories: list[CategoryReadShort] = Field(default_factory=list)
+    ingredients: list[IngredientReadShort] = Field(default_factory=list)
+    category_ids: list[int] = Field(default_factory=list, exclude=True)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductListResponse(BaseModel):
+    items: list[ProductRead]
+    total: int
+    skip: int
+    limit: int

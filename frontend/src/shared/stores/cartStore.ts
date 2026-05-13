@@ -1,39 +1,76 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type CartItem = {
+export type CartItem = {
   productId: number
+  name: string
+  price: number
+  image_url?: string | null
   quantity: number
   exclusions: number[]
 }
 
 type CartState = {
   items: CartItem[]
-  addItem: (productId: number) => void
+  addItem: (item: {
+    productId: number
+    name: string
+    price: number
+    image_url?: string | null
+    quantity?: number
+    exclusions?: number[]
+  }) => void
   updateQuantity: (productId: number, quantity: number) => void
   removeItem: (productId: number) => void
   clearCart: () => void
+  totalItems: () => number
+  totalPrice: () => number
+  getItem: (productId: number) => CartItem | undefined
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (productId) => {
+      addItem: ({ productId, name, price, image_url, quantity = 1, exclusions = [] }) => {
         const items = get().items
         const existing = items.find((i) => i.productId === productId)
         if (existing) {
-          set({ items: items.map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i)) })
+          set({
+            items: items.map((i) =>
+              i.productId === productId
+                ? { ...i, quantity: i.quantity + quantity }
+                : i,
+            ),
+          })
           return
         }
-        set({ items: [...items, { productId, quantity: 1, exclusions: [] }] })
+        set({
+          items: [
+            ...items,
+            { productId, name, price, image_url, quantity, exclusions },
+          ],
+        })
       },
       updateQuantity: (productId, quantity) => {
-        set({ items: get().items.map((i) => (i.productId === productId ? { ...i, quantity } : i)) })
+        if (quantity <= 0) {
+          set({ items: get().items.filter((i) => i.productId !== productId) })
+          return
+        }
+        set({
+          items: get().items.map((i) =>
+            i.productId === productId ? { ...i, quantity } : i,
+          ),
+        })
       },
-      removeItem: (productId) => set({ items: get().items.filter((i) => i.productId !== productId) }),
+      removeItem: (productId) =>
+        set({ items: get().items.filter((i) => i.productId !== productId) }),
       clearCart: () => set({ items: [] }),
+      totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      totalPrice: () =>
+        get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+      getItem: (productId) => get().items.find((i) => i.productId === productId),
     }),
-    { name: 'foodstore-cart' },
+    { name: 'food-store-cart' },
   ),
 )

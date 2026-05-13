@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.modules.auth.router import router as auth_router
 from app.modules.categorias.router import router as categorias_router
 from app.modules.productos.router import router as productos_router
+from app.modules.ingredientes.router import router as ingredientes_router
 from app.modules.health.router import router as health_router
 
 
@@ -11,3 +12,4 @@ api_router.include_router(health_router, tags=["health"])
 api_router.include_router(auth_router, tags=["auth"])
 api_router.include_router(categorias_router, tags=["categories"])
 api_router.include_router(productos_router, tags=["products"])
+api_router.include_router(ingredientes_router, tags=["ingredients"])

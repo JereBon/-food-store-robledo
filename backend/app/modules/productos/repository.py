@@ -1,62 +1,95 @@
 from typing import Optional, List
-from datetime import datetime
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 
-from app.modules.productos.model import Product
+from app.repositories.base import BaseRepository
+from app.modules.productos.model import Product, ProductCategory, ProductIngredient
 from app.modules.categorias.model import Category
+from app.modules.ingredientes.model import Ingrediente
 
 
-class ProductRepository:
-    """Repository for Product data access."""
-
+class ProductRepository(BaseRepository[Product]):
     def __init__(self, session: Session):
-        self.session = session
+        super().__init__(session, Product)
 
-    def create(self, product: Product) -> Product:
-        """Create a new product."""
-        self.session.add(product)
-        return product
+    def get_by_id(self, product_id: int) -> Optional[Product]:
+        return self.session.get(Product, product_id)
 
-    def read(self, product: Product) -> Product:
-        """Read/refresh an existing product."""
-        self.session.refresh(product)
-        return product
+    def list_filtered(
+        self,
+        *,
+        skip: int = 0,
+        limit: int = 20,
+        search: Optional[str] = None,
+        category_id: Optional[int] = None,
+        include_deleted: bool = False,
+        only_available: bool = False,
+    ) -> tuple[List[Product], int]:
+        stmt = select(Product).offset(skip).limit(limit)
+        count_stmt = select(func.count(Product.id))
 
-    def read_all(self, include_deleted: bool = False, category_id: Optional[int] = None) -> List[Product]:
-        """Read all products. By default excludes soft-deleted products."""
-        query = select(Product)
         if not include_deleted:
-            query = query.where(Product.deleted_at.is_(None))
+            stmt = stmt.where(Product.deleted_at.is_(None))
+            count_stmt = count_stmt.where(Product.deleted_at.is_(None))
+        if only_available:
+            stmt = stmt.where(Product.disponible == True)
+            count_stmt = count_stmt.where(Product.disponible == True)
+        if search:
+            stmt = stmt.where(Product.name.ilike(f"%{search}%"))
+            count_stmt = count_stmt.where(Product.name.ilike(f"%{search}%"))
         if category_id is not None:
-            query = query.where(Product.category_id == category_id)
-        return self.session.exec(query).all()
+            subq = select(ProductCategory.product_id).where(
+                ProductCategory.category_id == category_id
+            )
+            stmt = stmt.where(Product.id.in_(subq))
+            count_stmt = count_stmt.where(Product.id.in_(subq))
 
-    def get_by_id(self, product_id: int, include_deleted: bool = False) -> Optional[Product]:
-        """Get product by ID."""
-        query = select(Product).where(Product.id == product_id)
-        if not include_deleted:
-            query = query.where(Product.deleted_at.is_(None))
-        return self.session.exec(query).first()
+        total = self.session.exec(count_stmt).one()
+        products = list(self.session.exec(stmt).all())
+        return products, total
 
-    def update(self, product: Product) -> Product:
-        """Update an existing product."""
-        product.updated_at = datetime.utcnow()
-        self.session.add(product)
-        return product
+    def set_categories(self, product_id: int, category_ids: list[int]) -> None:
+        old = self.session.exec(
+            select(ProductCategory).where(ProductCategory.product_id == product_id)
+        ).all()
+        for row in old:
+            self.session.delete(row)
+        for cat_id in category_ids:
+            self.session.add(ProductCategory(product_id=product_id, category_id=cat_id))
 
-    def delete_soft(self, product: Product) -> Product:
-        """Soft delete a product (set deleted_at)."""
-        product.deleted_at = datetime.utcnow()
-        product.updated_at = datetime.utcnow()
-        self.session.add(product)
-        return product
+    def set_ingredients(
+        self, product_id: int, ingredient_data: list[dict]
+    ) -> None:
+        old = self.session.exec(
+            select(ProductIngredient).where(
+                ProductIngredient.product_id == product_id
+            )
+        ).all()
+        for row in old:
+            self.session.delete(row)
+        for data in ingredient_data:
+            self.session.add(
+                ProductIngredient(
+                    product_id=product_id,
+                    ingrediente_id=data["ingrediente_id"],
+                    es_removible=data.get("es_removible", False),
+                )
+            )
 
-    def validate_category_exists(self, category_id: int) -> bool:
-        """Check if a category exists and is not deleted."""
-        query = select(Category).where(
-            Category.id == category_id,
-            Category.deleted_at.is_(None)
-        )
-        result = self.session.exec(query).first()
-        return result is not None
+    def validate_categories_exist(self, category_ids: list[int]) -> bool:
+        for cat_id in category_ids:
+            stmt = select(Category).where(
+                Category.id == cat_id, Category.deleted_at.is_(None)
+            )
+            if not self.session.exec(stmt).first():
+                return False
+        return True
+
+    def validate_ingredients_exist(self, ingredient_ids: list[int]) -> bool:
+        for ing_id in ingredient_ids:
+            stmt = select(Ingrediente).where(
+                Ingrediente.id == ing_id, Ingrediente.deleted_at.is_(None)
+            )
+            if not self.session.exec(stmt).first():
+                return False
+        return True

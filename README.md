@@ -103,12 +103,13 @@ Todo cambio al sistema sigue este ciclo:
 us-000-setup               ← infraestructura base (Sprint 0)
 us-001-auth                ← JWT · RBAC · refresh tokens
 us-002-categorias          ← catálogo jerárquico
-us-003-productos           ← CRUD · stock · ingredientes
-us-004-carrito             ← estado client-side con Zustand
-us-005-pedidos             ← UoW · FSM · audit trail
-us-006-pagos-mercadopago   ← checkout · webhooks IPN
-us-007-admin               ← panel · métricas
-us-008-direcciones         ← direcciones de entrega
+us-003-bugfixes            ← estabilización post-integración
+us-004-productos           ← CRUD · stock · ingredientes
+us-005-carrito             ← estado client-side con Zustand
+us-006-pedidos             ← UoW · FSM · audit trail
+us-007-pagos-mercadopago   ← checkout · webhooks IPN
+us-008-admin               ← panel · métricas
+us-009-direcciones         ← direcciones de entrega
 ```
 
 ---

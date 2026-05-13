@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional
 
 from app.modules.productos.model import Product
@@ -6,52 +7,40 @@ from app.modules.productos.schemas import ProductCreate, ProductUpdate
 
 
 class ProductService:
-    """Business logic for products."""
-
     def __init__(self, repository: ProductRepository):
         self.repository = repository
 
     def create(self, data: ProductCreate) -> Product:
-        """Create a new product with validation."""
-        # Validate category exists if provided
-        if data.category_id is not None:
-            if not self.repository.validate_category_exists(data.category_id):
-                raise ValueError(f"Category with ID {data.category_id} not found or is deleted")
+        if data.category_ids:
+            if not self.repository.validate_categories_exist(data.category_ids):
+                raise ValueError("One or more categories not found or deleted")
 
         product = Product(
             name=data.name,
             description=data.description,
             price=data.price,
             stock=data.stock,
-            category_id=data.category_id,
+            disponible=data.disponible,
+            imagen_url=data.imagen_url,
         )
-        return self.repository.create(product)
+        created = self.repository.create(product)
+        self.repository.session.flush()  # get product.id before M2M inserts
+        if data.category_ids:
+            self.repository.set_categories(created.id, data.category_ids)
+        return created
 
     def update(self, product: Product, data: ProductUpdate) -> Product:
-        """Update an existing product with validation."""
-        # Validate category exists if provided and changed
-        if data.category_id is not None and data.category_id != product.category_id:
-            if not self.repository.validate_category_exists(data.category_id):
-                raise ValueError(f"Category with ID {data.category_id} not found or is deleted")
+        update_dict = data.model_dump(exclude_unset=True)
 
-        if data.name is not None:
-            product.name = data.name
-        if data.description is not None:
-            product.description = data.description
-        if data.price is not None:
-            product.price = data.price
-        if data.stock is not None:
-            product.stock = data.stock
-        if 'category_id' in data.model_fields_set:
-            product.category_id = data.category_id
+        if "category_ids" in update_dict:
+            cat_ids = update_dict.pop("category_ids")
+            if not self.repository.validate_categories_exist(cat_ids):
+                raise ValueError("One or more categories not found or deleted")
+            self.repository.set_categories(product.id, cat_ids)
 
-        return self.repository.update(product)
+        return self.repository.update(product, update_dict)
 
-    def associate_category(self, product: Product, category_id: Optional[int]) -> Product:
-        """Associate or disassociate a product from a category."""
-        if category_id is not None:
-            if not self.repository.validate_category_exists(category_id):
-                raise ValueError(f"Category with ID {category_id} not found or is deleted")
-
-        product.category_id = category_id
-        return self.repository.update(product)
+    def update_stock(self, product: Product, cantidad: int) -> Product:
+        if cantidad < 0:
+            raise ValueError("Stock cannot be negative")
+        return self.repository.update(product, {"stock": cantidad})
