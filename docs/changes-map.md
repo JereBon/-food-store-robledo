@@ -10,5 +10,5 @@
 | **us-005-carrito** | EPIC 08 (Sprint 4) | [cite_start]Carrito persistente client-side con Zustand y personalización de ingredientes. [cite: 2080, 2081] | ✅ Completado |
 | **us-006-pedidos** | EPIC 09 & 10 (Sprint 5) | [cite_start]Validación de disponibilidad y creación atómica de pedidos con Snapshots (UoW). [cite: 2082, 2083] | ✅ Completado |
 | **us-009-direcciones**| EPIC 07 (Sprint 4) | [cite_start]CRUD de direcciones de entrega, selección de dirección predeterminada, soft-delete con recuperación. | ✅ Completado (incluido en US-006) |
-| **us-007-pagos-mp** | EPIC 11 & 12 (Sprint 6) | [cite_start]Integración MercadoPago, webhooks IPN y Máquina de Estados (FSM) del pedido. [cite: 2084, 2085, 2086] | 📝 Pendiente |
+| **us-007-pagos-mp** | EPIC 11 & 12 (Sprint 6) | Integración MercadoPago, webhooks IPN, Máquina de Estados (FSM) del pedido y páginas de resultado de pago. | ✅ Completado |
 | **us-008-admin** | EPIC 15, 16, 17 (Sprint 8)| [cite_start]Panel de administración, métricas con recharts y gestión de usuarios. [cite: 2090, 2091, 2092] | 📝 Pendiente |
