@@ -8,6 +8,7 @@ export type CartItem = {
   image_url?: string | null
   quantity: number
   exclusions: number[]
+  stock: number
 }
 
 type CartState = {
@@ -19,6 +20,7 @@ type CartState = {
     image_url?: string | null
     quantity?: number
     exclusions?: number[]
+    stock?: number
   }) => void
   updateQuantity: (productId: number, quantity: number) => void
   removeItem: (productId: number) => void
@@ -32,7 +34,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: ({ productId, name, price, image_url, quantity = 1, exclusions = [] }) => {
+      addItem: ({ productId, name, price, image_url, quantity = 1, exclusions = [], stock = 0 }) => {
         const items = get().items
         const existing = items.find((i) => i.productId === productId)
         if (existing) {
@@ -48,7 +50,7 @@ export const useCartStore = create<CartState>()(
         set({
           items: [
             ...items,
-            { productId, name, price, image_url, quantity, exclusions },
+            { productId, name, price, image_url, quantity, exclusions, stock },
           ],
         })
       },

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CategoryForm } from '../../features/categories/widgets/CategoryForm';
-import { ICategory } from '../../entities/category';
+import { CategoryForm } from '@/features/categories/widgets/CategoryForm';
+import { ICategory } from '@/entities/category';
 
 describe('CategoryForm Component', () => {
   const mockCategory: ICategory = {
@@ -23,9 +23,9 @@ describe('CategoryForm Component', () => {
 
     render(<CategoryForm onSubmit={handleSubmit} />);
 
-    expect(screen.getByLabelText(/Category Name/i)).toHaveValue('');
-    expect(screen.getByLabelText(/Description/i)).toHaveValue('');
-    expect(screen.getByRole('button', { name: /Create Category/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre de la Categoría/i)).toHaveValue('');
+    expect(screen.getByLabelText(/Descripción/i)).toHaveValue('');
+    expect(screen.getByRole('button', { name: /Crear Categoría/i })).toBeInTheDocument();
   });
 
   it('renders form with category data for edit mode', () => {
@@ -33,34 +33,31 @@ describe('CategoryForm Component', () => {
 
     render(<CategoryForm category={mockCategory} onSubmit={handleSubmit} />);
 
-    expect(screen.getByLabelText(/Category Name/i)).toHaveValue('Fruits');
-    expect(screen.getByLabelText(/Description/i)).toHaveValue('Fresh fruits');
-    expect(screen.getByRole('button', { name: /Update Category/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre de la Categoría/i)).toHaveValue('Fruits');
+    expect(screen.getByLabelText(/Descripción/i)).toHaveValue('Fresh fruits');
+    expect(screen.getByRole('button', { name: /Actualizar Categoría/i })).toBeInTheDocument();
   });
 
-  it('validates required name field', async () => {
+  it('validates required name field', () => {
     const handleSubmit = vi.fn();
-    const user = userEvent.setup();
 
     render(<CategoryForm onSubmit={handleSubmit} />);
 
-    const submitButton = screen.getByRole('button', { name: /Create Category/i });
-    await user.click(submitButton);
+    // Use fireEvent.submit to bypass HTML5 required validation
+    const form = screen.getByRole('button', { name: /Crear Categoría/i }).closest('form')!;
+    fireEvent.submit(form);
 
-    expect(screen.getByText(/Category name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/El nombre de la categoría es obligatorio/i)).toBeInTheDocument();
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  it('validates name max length', async () => {
+  it('has maxLength attribute on name input', () => {
     const handleSubmit = vi.fn();
-    const user = userEvent.setup();
 
     render(<CategoryForm onSubmit={handleSubmit} />);
 
-    const nameInput = screen.getByLabelText(/Category Name/i);
-    await user.type(nameInput, 'a'.repeat(101));
-
-    expect(screen.getByText(/must be 100 characters or less/i)).toBeInTheDocument();
+    const nameInput = screen.getByLabelText(/Nombre de la Categoría/i);
+    expect(nameInput).toHaveAttribute('maxLength', '100');
   });
 
   it('submits form with valid data', async () => {
@@ -69,9 +66,9 @@ describe('CategoryForm Component', () => {
 
     render(<CategoryForm onSubmit={handleSubmit} />);
 
-    const nameInput = screen.getByLabelText(/Category Name/i);
-    const descInput = screen.getByLabelText(/Description/i);
-    const submitButton = screen.getByRole('button', { name: /Create Category/i });
+    const nameInput = screen.getByLabelText(/Nombre de la Categoría/i);
+    const descInput = screen.getByLabelText(/Descripción/i);
+    const submitButton = screen.getByRole('button', { name: /Crear Categoría/i });
 
     await user.type(nameInput, 'Vegetables');
     await user.type(descInput, 'Green veggies');
@@ -89,10 +86,10 @@ describe('CategoryForm Component', () => {
 
     render(<CategoryForm onSubmit={handleSubmit} isLoading={true} />);
 
-    const nameInput = screen.getByLabelText(/Category Name/i);
+    const nameInput = screen.getByLabelText(/Nombre de la Categoría/i);
     expect(nameInput).toBeDisabled();
 
-    const submitButton = screen.getByRole('button', { name: /Saving/i });
+    const submitButton = screen.getByRole('button', { name: /Guardando/i });
     expect(submitButton).toBeDisabled();
   });
 

@@ -305,7 +305,7 @@ describe('CartPage', () => {
     expect(useCartStore.getState().items).toHaveLength(1)
   })
 
-  it('disables Finalizar Compra button', () => {
+  it('shows enabled Proceder al Checkout button', () => {
     useCartStore.setState({
       items: [
         {
@@ -319,8 +319,8 @@ describe('CartPage', () => {
     })
     renderPage()
 
-    const checkoutButton = screen.getByText('Finalizar Compra')
-    expect(checkoutButton).toBeDisabled()
+    const checkoutButton = screen.getByText('Proceder al Checkout')
+    expect(checkoutButton).not.toBeDisabled()
   })
 
   it('shows image when item has image_url', () => {

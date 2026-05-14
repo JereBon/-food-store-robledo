@@ -85,7 +85,8 @@ export function CartDrawer() {
                         onClick={() =>
                           updateQuantity(item.productId, item.quantity + 1)
                         }
-                        className="px-2 py-0.5 hover:bg-gray-100 text-sm"
+                        disabled={item.quantity >= item.stock}
+                        className="px-2 py-0.5 hover:bg-gray-100 text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         +
                       </button>

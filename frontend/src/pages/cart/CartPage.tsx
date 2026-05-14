@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore } from '@/shared/stores/cartStore'
 
 export function CartPage() {
   const { items, updateQuantity, removeItem, clearCart, totalPrice, totalItems } =
     useCartStore()
+  const navigate = useNavigate()
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   if (items.length === 0) {
@@ -71,7 +72,8 @@ export function CartPage() {
               <span className="px-4 py-1">{item.quantity}</span>
               <button
                 onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                className="px-3 py-1 hover:bg-gray-100"
+                disabled={item.quantity >= item.stock}
+                className="px-3 py-1 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 +
               </button>
@@ -97,11 +99,10 @@ export function CartPage() {
           <p className="text-sm text-gray-500">{totalItems()} artículos</p>
         </div>
         <button
-          disabled
-          className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 font-medium"
-          title="Próximamente"
+          onClick={() => navigate('/checkout')}
+          className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium transition-colors"
         >
-          Finalizar Compra
+          Proceder al Checkout
         </button>
       </div>
 

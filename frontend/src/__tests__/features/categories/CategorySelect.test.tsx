@@ -1,21 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { CategorySelect } from '../../features/categories/widgets/CategorySelect';
-import { useCategories } from '../../features/categories/api';
+import { CategorySelect } from '@/features/categories/widgets/CategorySelect';
+import { useCategories } from '@/features/categories/api';
 
 // Mock the useCategories hook
-vi.mock('../../features/categories/api', () => ({
+vi.mock('@/features/categories/api', () => ({
   useCategories: vi.fn(),
 }));
 
 describe('CategorySelect Component', () => {
   const mockCategories = [
-    { id: 1, name: 'Fruits', slug: 'fruits' },
-    { id: 2, name: 'Vegetables', slug: 'vegetables' },
+    { id: 1, name: 'Fruits', slug: 'fruits', description: 'Fresh fruits', created_at: '2026-05-11T00:00:00Z', updated_at: '2026-05-11T00:00:00Z' },
+    { id: 2, name: 'Vegetables', slug: 'vegetables', description: 'Green veggies', created_at: '2026-05-11T00:00:00Z', updated_at: '2026-05-11T00:00:00Z' },
   ];
 
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,13 +36,14 @@ describe('CategorySelect Component', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Category')).toBeInTheDocument();
+    expect(screen.getByText('Categoría')).toBeInTheDocument();
     expect(screen.getByText('Fruits')).toBeInTheDocument();
     expect(screen.getByText('Vegetables')).toBeInTheDocument();
   });
 
-  it('calls onChange when selection changes', async () => {
+  it('calls onChange when selection changes', () => {
     const handleChange = vi.fn();
+
     (useCategories as any).mockReturnValue({
       data: mockCategories,
       isLoading: false,
@@ -53,7 +56,7 @@ describe('CategorySelect Component', () => {
       </QueryClientProvider>
     );
 
-    const select = screen.getByDisplayValue('Select a category...');
+    const select = screen.getByDisplayValue('Selecciona una categoría...');
     fireEvent.change(select, { target: { value: '1' } });
 
     expect(handleChange).toHaveBeenCalledWith(1);
@@ -72,7 +75,7 @@ describe('CategorySelect Component', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Loading categories...')).toBeInTheDocument();
+    expect(screen.getByText('Cargando categorías...')).toBeInTheDocument();
   });
 
   it('handles error state', () => {
@@ -88,7 +91,7 @@ describe('CategorySelect Component', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Failed to load categories')).toBeInTheDocument();
+    expect(screen.getByText('Error al cargar las categorías')).toBeInTheDocument();
   });
 
   it('can be set to disabled', () => {
@@ -100,11 +103,11 @@ describe('CategorySelect Component', () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <CategorySelect disabled />
+        <CategorySelect disabled={true} />
       </QueryClientProvider>
     );
 
-    const select = screen.getByDisplayValue('Select a category...');
+    const select = screen.getByDisplayValue('Selecciona una categoría...');
     expect(select).toBeDisabled();
   });
 });
