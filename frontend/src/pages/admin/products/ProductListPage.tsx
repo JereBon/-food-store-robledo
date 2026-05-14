@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import { useProducts, useDeleteProduct, useUpdateStock, useRestoreProduct } from '@/features/products/api'
 
 export function ProductListPage() {
+  const limit = 10
   const [skip, setSkip] = useState(0)
   const [stockEdit, setStockEdit] = useState<{ id: number; value: string } | null>(null)
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
 
-  const { data, error } = useProducts({ skip, limit: 20, include_deleted: includeDeleted })
+  const { data, error } = useProducts({ skip, limit, include_deleted: includeDeleted })
   const deleteMutation = useDeleteProduct()
   const stockMutation = useUpdateStock()
   const restoreMutation = useRestoreProduct()
@@ -170,25 +171,29 @@ export function ProductListPage() {
         <p className="text-center py-8 text-gray-500">No se encontraron productos.</p>
       )}
 
-      <div className="flex justify-center gap-4 mt-6">
-        <button
-          onClick={() => setSkip(Math.max(0, skip - 20))}
-          disabled={skip === 0}
-          className="px-4 py-2 border rounded disabled:opacity-50"
-        >
-          Anterior
-        </button>
-        <span className="px-4 py-2 text-sm text-gray-600">
-          {data ? `${skip + 1}-${Math.min(skip + 20, data.total)} de ${data.total}` : ''}
-        </span>
-        <button
-          onClick={() => setSkip(skip + 20)}
-          disabled={!data || skip + 20 >= data.total}
-          className="px-4 py-2 border rounded disabled:opacity-50"
-        >
-          Siguiente
-        </button>
-      </div>
+      {data && data.total > limit && (
+        <div className="flex items-center justify-between mt-6 px-1">
+          <p className="text-sm text-gray-500">
+            Mostrando {skip + 1} - {Math.min(skip + limit, data.total)} de {data.total}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSkip(Math.max(0, skip - limit))}
+              disabled={skip <= 0}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setSkip(skip + limit)}
+              disabled={skip + limit >= data.total}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

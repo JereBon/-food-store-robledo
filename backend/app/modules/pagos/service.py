@@ -53,6 +53,26 @@ class PagoService:
         is_local = "localhost" in settings.backend_url or "localhost" in settings.frontend_url
 
         if is_local:
+            # Auto-confirm order in dev mode: PENDIENTE ⟶ CONFIRMADO + decrement stock
+            if pedido.estado_id == 1:
+                for detalle in self.pedido_repo.get_detalles_by_pedido(pedido.id):
+                    product = self.producto_repo.get_by_id(detalle.producto_id)
+                    if product and product.stock >= detalle.cantidad:
+                        product.stock -= detalle.cantidad
+                        self.producto_repo.session.add(product)
+
+                pedido.estado_id = 2
+                self.pedido_repo.session.add(pedido)
+
+                historial = HistorialEstadoPedido(
+                    pedido_id=pedido.id,
+                    estado_anterior_id=1,
+                    estado_nuevo_id=2,
+                    cambiado_por="SISTEMA",
+                    observacion="Pago simulado en entorno local",
+                )
+                self.pedido_repo.create_historial(historial)
+
             fake_id = f"dev-pref-{pedido.id}"
             return CrearPreferenciaResponse(
                 preference_id=fake_id,

@@ -5,6 +5,7 @@ from contextlib import AbstractContextManager
 from sqlmodel import Session
 
 from app.core.database import engine as default_engine
+from app.modules.admin.repository import AdminRepository
 from app.modules.refreshtokens.repository import RefreshTokensRepository
 from app.modules.usuarios.repository import UsersRepository
 from app.modules.direcciones.repository import DireccionRepository  # noqa: E402
@@ -17,6 +18,7 @@ class UnitOfWork(AbstractContextManager):
         self._engine = engine or default_engine
         self.session: Session | None = None
         self.users: UsersRepository
+        self.admin: AdminRepository
         self.refresh_tokens: RefreshTokensRepository
         self.direcciones: DireccionRepository
         self.pedidos: PedidoRepository
@@ -26,6 +28,7 @@ class UnitOfWork(AbstractContextManager):
     def __enter__(self):
         self.session = Session(self._engine, expire_on_commit=False)
         self.users = UsersRepository(self.session)
+        self.admin = AdminRepository(self.session)
         self.refresh_tokens = RefreshTokensRepository(self.session)
         self.direcciones = DireccionRepository(self.session)
         self.pedidos = PedidoRepository(self.session)

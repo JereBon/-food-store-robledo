@@ -36,3 +36,10 @@ class IngredientReadShort(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class IngredientListResponse(BaseModel):
+    items: list[IngredienteRead]
+    total: int
+    skip: int
+    limit: int

@@ -154,8 +154,8 @@ export function CheckoutPage() {
     try {
       const order = await placeOrder(payload)
       clearCart()
-      const initPoint = await startCheckout(order.id)
-      window.location.href = initPoint
+      await startCheckout(order.id)
+      navigate(`/pago/exito?pedido=${order.id}`)
     } catch {
       // Error is already set in orderStore or paymentStore and displayed inline
     }

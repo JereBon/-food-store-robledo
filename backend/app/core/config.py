@@ -36,7 +36,7 @@ def _load_settings() -> Settings:
         jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
         jwt_access_token_expire_minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")),
         jwt_refresh_token_expire_days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7")),
-        cors_origins=_split_csv(os.getenv("CORS_ORIGINS", "http://localhost:5173")),
+        cors_origins=_split_csv(os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176")),
         seed_admin_email=os.getenv("SEED_ADMIN_EMAIL", "admin@foodstore.local"),
         seed_admin_password=os.getenv("SEED_ADMIN_PASSWORD", "admin123"),
         mercadopago_access_token=os.getenv("MERCADOPAGO_ACCESS_TOKEN", "TEST-change-me"),

@@ -74,4 +74,9 @@ class PaymentMethod(SQLModel, table=True):
     enabled: bool = Field(default=True)
 
 
+# Import FormaPago so its table is registered in SQLModel.metadata
+# (needed for Pedido.forma_pago_id FK resolution)
+from app.modules.pagos.model import FormaPago  # noqa: E402, F401
+
+
 

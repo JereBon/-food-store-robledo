@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useRestoreCategory } from '../api';
+import { useCategoriesPaginated, useCreateCategory, useUpdateCategory, useDeleteCategory, useRestoreCategory } from '../api';
 import type { ICategory } from '../../../entities/category';
 import { CategoryForm } from '../widgets/CategoryForm';
 import { CategoryList } from '../widgets/CategoryList';
@@ -12,8 +12,12 @@ export const CategoriesPage: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ICategory | null>(null);
   const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [skip, setSkip] = useState(0);
+  const limit = 10;
 
-  const { data: categories = [], isLoading, error } = useCategories(includeDeleted);
+  const { data, isLoading, error } = useCategoriesPaginated(includeDeleted, skip, limit);
+  const categories = data?.items ?? [];
+  const total = data?.total ?? 0;
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
@@ -85,7 +89,7 @@ export const CategoriesPage: FC = () => {
           <input
             type="checkbox"
             checked={includeDeleted}
-            onChange={(e) => setIncludeDeleted(e.target.checked)}
+            onChange={(e) => { setIncludeDeleted(e.target.checked); setSkip(0) }}
             className="rounded"
           />
           <span>Mostrar categorías eliminadas</span>
@@ -105,6 +109,31 @@ export const CategoriesPage: FC = () => {
         onRestore={handleRestore}
         isLoading={isLoading}
       />
+
+      {/* Pagination */}
+      {total > limit && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-sm text-gray-500">
+            Mostrando {skip + 1} - {Math.min(skip + limit, total)} de {total}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSkip(Math.max(0, skip - limit))}
+              disabled={skip <= 0}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setSkip(skip + limit)}
+              disabled={skip + limit >= total}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create/Edit Modal */}
       {isModalOpen && (

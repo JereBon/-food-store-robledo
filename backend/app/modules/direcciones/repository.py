@@ -65,6 +65,7 @@ class DireccionRepository(BaseRepository[DireccionEntrega]):
 
     def set_default(self, direccion_id: int, usuario_id: int) -> Optional[DireccionEntrega]:
         self.unset_all_defaults(usuario_id)
+        self.session.flush()
         direccion = self.get_by_id_and_user(direccion_id, usuario_id)
         if direccion:
             direccion.es_predeterminada = True

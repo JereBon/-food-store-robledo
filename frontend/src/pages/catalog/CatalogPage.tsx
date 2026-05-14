@@ -3,12 +3,28 @@ import { Link } from 'react-router-dom'
 import { useProducts } from '@/features/products/api'
 import { useCategories } from '@/features/categories/api'
 import { AddToCartButton } from '@/features/products/widgets/AddToCartButton'
+import { useCartStore } from '@/shared/stores/cartStore'
+
+function stockMessage(productStock: number, inCart: number): string | null {
+  const maxAddable = Math.max(0, productStock - inCart)
+  if (productStock <= 0) return null
+  if (maxAddable <= 0) {
+    if (inCart === 1) return 'Ya tenés 1 en tu carrito'
+    return `Ya tenés ${inCart} en tu carrito`
+  }
+  if (maxAddable < 5) {
+    if (maxAddable === 1) return '¡Última 1 unidad!'
+    return `¡Últimas ${maxAddable} unidades!`
+  }
+  return null
+}
 
 export function CatalogPage() {
   const [skip, setSkip] = useState(0)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | undefined>()
+  const cartItems = useCartStore((s) => s.items)
 
   const { data, isLoading, error } = useProducts({
     skip,
@@ -94,9 +110,17 @@ export function CatalogPage() {
                   )}
                   <h2 className="text-lg font-semibold">{product.name}</h2>
                   <p className="text-gray-600">${Number(product.price).toFixed(2)} ARS</p>
-                  <p className="text-sm text-gray-500">
-                    {product.stock > 0 ? `${product.stock} en stock` : <span className="text-orange-600 font-medium">No disponible</span>}
-                  </p>
+                  {(() => {
+                    const inCart = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0
+                    const msg = stockMessage(product.stock, inCart)
+                    if (product.stock <= 0) {
+                      return <p className="text-sm"><span className="text-orange-600 font-medium">No disponible</span></p>
+                    }
+                    if (msg) {
+                      return <p className="text-sm"><span className="text-red-600 font-medium animate-pulse">{msg}</span></p>
+                    }
+                    return null
+                  })()}
                   <div className="flex flex-wrap gap-1 mt-2">
                     {product.categories.map((cat) => (
                       <span key={cat.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">

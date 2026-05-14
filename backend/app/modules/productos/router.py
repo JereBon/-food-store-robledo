@@ -59,7 +59,7 @@ def list_products(
     include_deleted: bool = False,
     user: Optional[User] = Depends(get_optional_user),
 ):
-    is_admin = user is not None and any(r.code == "ADMIN" for r in (user.roles or []))
+    is_admin = user is not None and any(r.code in ("ADMIN", "STOCK") for r in (user.roles or []))
     include_deleted = include_deleted and is_admin
     only_available = user is None
 
