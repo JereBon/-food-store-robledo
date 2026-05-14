@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CategoryBase(BaseModel):
@@ -34,14 +34,13 @@ class CategoryUpdate(BaseModel):
 class CategoryRead(CategoryBase):
     """Schema for reading/returning category data."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     slug: str
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class CategoryListResponse(BaseModel):

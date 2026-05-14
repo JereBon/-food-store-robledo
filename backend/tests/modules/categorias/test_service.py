@@ -206,17 +206,18 @@ class TestDeleteCategory:
     def test_delete_category_with_products_fails(self, service, repo, session):
         """Test: Cannot delete category that has active products"""
         from app.modules.productos.model import Product
+        from app.modules.productos.pivot import ProductCategory
 
         cat = Category(name="Fruits", slug="fruits")
         repo.create(cat)
         session.commit()
         session.refresh(cat)
 
-        # Create product in this category
-        prod = Product(name="Apple", price=1.50, category_id=cat.id)
+        prod = Product(name="Apple", price=1.50)
         session.add(prod)
+        session.flush()
+        session.add(ProductCategory(product_id=prod.id, category_id=cat.id))
         session.commit()
 
-        # Try to delete
         with pytest.raises(ValueError, match="Cannot delete"):
             service.delete_with_validation(cat)

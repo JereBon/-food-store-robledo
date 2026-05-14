@@ -37,10 +37,14 @@ def _make_service(*, estado_id=1, same_user=True, existing_pago=None, stock=10):
     return PagoService(pago_repo, forma_pago_repo, pedido_repo, producto_repo)
 
 
+@patch("app.modules.pagos.service.settings")
 @patch("app.modules.pagos.service._get_sdk")
-def test_crear_preferencia_success(mock_sdk):
+def test_crear_preferencia_success(mock_sdk, mock_settings):
+    mock_settings.backend_url = "https://api.production.com"
+    mock_settings.frontend_url = "https://app.production.com"
     sdk = MagicMock()
     sdk.preference.return_value.create.return_value = {
+        "status": 201,
         "response": {"id": "pref-123", "init_point": "https://mp.com/pay/pref-123"}
     }
     mock_sdk.return_value = sdk

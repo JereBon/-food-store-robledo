@@ -6,43 +6,43 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine
 from sqlmodel.pool import StaticPool
+from datetime import datetime
 
+import app.uow as uow_module
 from app.main import app
 from app.core.database import get_session
-from app.db.models import User, Role, UserRole, Category
-from app.core.security import hash_password, encode_token
+from app.db.models import User, Role, UserRole
+from app.modules.categorias.model import Category
+from app.core.security import hash_password, create_access_token
 
 
 @pytest.fixture
-def engine():
-    """Create in-memory SQLite database for tests."""
+def engine(monkeypatch):
+    """Create in-memory SQLite database and patch UoW to use it."""
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    from sqlmodel import SQLModel
+    SQLModel.metadata.create_all(engine)
+    monkeypatch.setattr(uow_module, "default_engine", engine)
     return engine
 
 
 @pytest.fixture
 def session(engine):
     """Create a database session for tests."""
-    from app.db.models import SQLModel
-
-    SQLModel.metadata.create_all(engine)
     with Session(engine) as session:
         yield session
 
 
 @pytest.fixture
 def client(session):
-    """Create a test client with mocked database."""
-
-    def get_session_override():
-        return session
-
-    app.dependency_overrides[get_session] = get_session_override
-    return TestClient(app)
+    """Create a test client with injected SQLite session."""
+    app.dependency_overrides[get_session] = lambda: session
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -102,13 +102,13 @@ def regular_user(session):
 @pytest.fixture
 def admin_token(admin_user):
     """Generate JWT token for admin user."""
-    return encode_token({"sub": str(admin_user.id)})
+    return create_access_token(subject=str(admin_user.id), roles=["ADMIN"])
 
 
 @pytest.fixture
 def user_token(regular_user):
     """Generate JWT token for regular user."""
-    return encode_token({"sub": str(regular_user.id)})
+    return create_access_token(subject=str(regular_user.id), roles=["CLIENT"])
 
 
 class TestCategoryCreate:
@@ -160,7 +160,6 @@ class TestCategoryList:
 
     def test_list_categories(self, client, admin_token, session):
         """Test: Can list all categories"""
-        # Create categories
         cat1 = Category(name="Fruits", slug="fruits")
         cat2 = Category(name="Vegetables", slug="vegetables")
         session.add(cat1)
@@ -173,15 +172,14 @@ class TestCategoryList:
         )
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 2
-        assert any(c["name"] == "Fruits" for c in data)
-        assert any(c["name"] == "Vegetables" for c in data)
+        assert len(data["items"]) == 2
+        assert any(c["name"] == "Fruits" for c in data["items"])
+        assert any(c["name"] == "Vegetables" for c in data["items"])
 
     def test_list_excludes_deleted_for_regular_users(self, client, user_token, session):
         """Test: Regular users don't see deleted categories"""
-        # Create categories
         cat1 = Category(name="Fruits", slug="fruits")
-        cat2 = Category(name="Deleted", slug="deleted", deleted_at="2026-05-11T00:00:00")
+        cat2 = Category(name="Deleted", slug="deleted", deleted_at=datetime(2026, 5, 11))
         session.add(cat1)
         session.add(cat2)
         session.commit()
@@ -192,8 +190,8 @@ class TestCategoryList:
         )
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "Fruits"
+        assert len(data["items"]) == 1
+        assert data["items"][0]["name"] == "Fruits"
 
 
 class TestCategoryGet:

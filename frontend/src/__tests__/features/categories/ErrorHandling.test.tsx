@@ -61,8 +61,8 @@ describe('CategoriesPage Delete Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (api.useCategories as any).mockReturnValue({
-      data: [{ id: 1, name: 'Fruits', slug: 'fruits', description: 'Fresh', created_at: '2026-05-11T00:00:00Z', updated_at: '2026-05-11T00:00:00Z' }],
+    (api.useCategoriesPaginated as any).mockReturnValue({
+      data: { items: [{ id: 1, name: 'Fruits', slug: 'fruits', description: 'Fresh', created_at: '2026-05-11T00:00:00Z', updated_at: '2026-05-11T00:00:00Z' }], total: 1, skip: 0, limit: 10 },
       isLoading: false,
       error: null,
     });
@@ -105,8 +105,8 @@ describe('CategoriesPage Delete Flow', () => {
   });
 
   it('shows error when loading categories fails', () => {
-    (api.useCategories as any).mockReturnValue({
-      data: [],
+    (api.useCategoriesPaginated as any).mockReturnValue({
+      data: undefined,
       isLoading: false,
       error: new Error('Network error'),
     });

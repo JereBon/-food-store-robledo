@@ -1,321 +1,309 @@
-# Category Management API Documentation
+# Documentación API — Gestión de Categorías
 
-## Overview
+## Descripción
 
-The Category Management API provides endpoints for managing product categories in the Food Store e-commerce system. Categories are used to organize and filter products.
+La API de Gestión de Categorías provee endpoints para administrar las categorías de productos del sistema Food Store. Las categorías organizan y filtran el catálogo de productos.
 
-**Base URL:** `/api/categories`
+**URL Base:** `/api/v1/categorias`
 
-**Authentication:** All endpoints require authentication via JWT token in the `Authorization: Bearer {token}` header.
+**Autenticación:** Todos los endpoints requieren autenticación mediante JWT en el header `Authorization: Bearer {token}`.
 
 ---
 
 ## Endpoints
 
-### 1. Create Category
+### 1. Crear Categoría
 
-**Endpoint:** `POST /api/categories`
+**Endpoint:** `POST /api/v1/categorias`
 
-**Required Role:** ADMIN
+**Rol requerido:** ADMIN
 
 **Request:**
 ```json
 {
-  "name": "Fruits",
-  "description": "Fresh fruits and berries"
+  "name": "Frutas",
+  "description": "Frutas frescas y de temporada"
 }
 ```
 
-**Parameters:**
-- `name` (string, required): Category name (max 100 characters, must be unique)
-- `description` (string, optional): Category description (max 500 characters)
+**Parámetros:**
+- `name` (string, requerido): Nombre de la categoría (máx. 100 caracteres, debe ser único)
+- `description` (string, opcional): Descripción de la categoría (máx. 500 caracteres)
 
-**Response (201 Created):**
+**Respuesta (201 Created):**
 ```json
 {
   "id": 1,
-  "name": "Fruits",
-  "slug": "fruits",
-  "description": "Fresh fruits and berries",
+  "name": "Frutas",
+  "slug": "frutas",
+  "description": "Frutas frescas y de temporada",
   "created_at": "2026-05-11T10:30:00Z",
   "updated_at": "2026-05-11T10:30:00Z",
   "deleted_at": null
 }
 ```
 
-**Error Responses:**
-- `400 Bad Request`: Duplicate name or invalid data
+**Errores:**
+- `400 Bad Request`: Nombre duplicado o datos inválidos
   ```json
-  {
-    "detail": "A category with name 'Fruits' already exists"
-  }
+  { "detail": "A category with name 'Frutas' already exists" }
   ```
-- `403 Forbidden`: User is not an admin
+- `403 Forbidden`: El usuario no tiene rol ADMIN
   ```json
-  {
-    "detail": "Insufficient permissions"
-  }
+  { "detail": "Insufficient permissions" }
   ```
 
 ---
 
-### 2. List Categories
+### 2. Listar Categorías
 
-**Endpoint:** `GET /api/categories`
+**Endpoint:** `GET /api/v1/categorias`
 
-**Query Parameters:**
-- `include_deleted` (boolean, optional): Include soft-deleted categories (default: false, only admins can set to true)
+**Parámetros de consulta:**
+- `skip` (entero, opcional): Desplazamiento para paginación (default: 0)
+- `limit` (entero, opcional): Cantidad máxima de resultados (default: 20)
+- `include_deleted` (booleano, opcional): Incluir categorías eliminadas (default: false, solo ADMIN)
 
-**Response (200 OK):**
+**Respuesta (200 OK):**
 ```json
-[
-  {
-    "id": 1,
-    "name": "Fruits",
-    "slug": "fruits",
-    "description": "Fresh fruits and berries",
-    "created_at": "2026-05-11T10:30:00Z",
-    "updated_at": "2026-05-11T10:30:00Z",
-    "deleted_at": null
-  },
-  {
-    "id": 2,
-    "name": "Vegetables",
-    "slug": "vegetables",
-    "description": "Fresh vegetables",
-    "created_at": "2026-05-11T10:35:00Z",
-    "updated_at": "2026-05-11T10:35:00Z",
-    "deleted_at": null
-  }
-]
+{
+  "items": [
+    {
+      "id": 1,
+      "name": "Frutas",
+      "slug": "frutas",
+      "description": "Frutas frescas y de temporada",
+      "created_at": "2026-05-11T10:30:00Z",
+      "updated_at": "2026-05-11T10:30:00Z",
+      "deleted_at": null
+    }
+  ],
+  "total": 1,
+  "skip": 0,
+  "limit": 20
+}
 ```
 
-**Note:** Non-admin users always get non-deleted categories only, regardless of `include_deleted` parameter.
+**Nota:** Los usuarios sin rol ADMIN siempre reciben solo categorías activas, independientemente del parámetro `include_deleted`.
 
 ---
 
-### 3. Get Single Category
+### 3. Obtener Categoría por ID
 
-**Endpoint:** `GET /api/categories/{category_id}`
+**Endpoint:** `GET /api/v1/categorias/{category_id}`
 
-**Path Parameters:**
-- `category_id` (integer): The category ID
+**Parámetros de ruta:**
+- `category_id` (entero): ID de la categoría
 
-**Response (200 OK):**
+**Respuesta (200 OK):**
 ```json
 {
   "id": 1,
-  "name": "Fruits",
-  "slug": "fruits",
-  "description": "Fresh fruits and berries",
+  "name": "Frutas",
+  "slug": "frutas",
+  "description": "Frutas frescas y de temporada",
   "created_at": "2026-05-11T10:30:00Z",
   "updated_at": "2026-05-11T10:30:00Z",
   "deleted_at": null
 }
 ```
 
-**Error Responses:**
-- `404 Not Found`: Category doesn't exist or is deleted
+**Errores:**
+- `404 Not Found`: La categoría no existe o está eliminada
 
 ---
 
-### 4. Update Category
+### 4. Actualizar Categoría
 
-**Endpoint:** `PUT /api/categories/{category_id}`
+**Endpoint:** `PUT /api/v1/categorias/{category_id}`
 
-**Required Role:** ADMIN
+**Rol requerido:** ADMIN
 
-**Path Parameters:**
-- `category_id` (integer): The category ID to update
+**Parámetros de ruta:**
+- `category_id` (entero): ID de la categoría a actualizar
 
 **Request:**
 ```json
 {
-  "name": "Exotic Fruits",
-  "description": "Tropical fruits from around the world"
+  "name": "Frutas Exóticas",
+  "description": "Frutas tropicales de todo el mundo"
 }
 ```
 
-**Parameters:**
-- `name` (string, optional): New category name (if provided, must be unique)
-- `description` (string, optional): New category description
+**Parámetros:**
+- `name` (string, opcional): Nuevo nombre (si se provee, debe ser único)
+- `description` (string, opcional): Nueva descripción
 
-**Response (200 OK):**
+**Respuesta (200 OK):**
 ```json
 {
   "id": 1,
-  "name": "Exotic Fruits",
-  "slug": "exotic-fruits",
-  "description": "Tropical fruits from around the world",
+  "name": "Frutas Exóticas",
+  "slug": "frutas-exoticas",
+  "description": "Frutas tropicales de todo el mundo",
   "created_at": "2026-05-11T10:30:00Z",
   "updated_at": "2026-05-11T10:45:00Z",
   "deleted_at": null
 }
 ```
 
-**Error Responses:**
-- `400 Bad Request`: Invalid data or duplicate name
-- `403 Forbidden`: User is not an admin
-- `404 Not Found`: Category doesn't exist or is deleted
+**Errores:**
+- `400 Bad Request`: Datos inválidos o nombre duplicado
+- `403 Forbidden`: El usuario no tiene rol ADMIN
+- `404 Not Found`: La categoría no existe o está eliminada
 
 ---
 
-### 5. Delete Category
+### 5. Eliminar Categoría (Soft Delete)
 
-**Endpoint:** `DELETE /api/categories/{category_id}`
+**Endpoint:** `DELETE /api/v1/categorias/{category_id}`
 
-**Required Role:** ADMIN
+**Rol requerido:** ADMIN
 
-**Path Parameters:**
-- `category_id` (integer): The category ID to delete
+**Parámetros de ruta:**
+- `category_id` (entero): ID de la categoría a eliminar
 
-**Implementation Notes:**
-- Uses soft delete: sets `deleted_at` timestamp instead of removing from database
-- Deleted categories are excluded from public list queries (visible only to admins)
+**Implementación:** Soft delete — establece el campo `deleted_at` con el timestamp actual en lugar de eliminar el registro físicamente. Las categorías eliminadas quedan ocultas en consultas públicas pero son visibles para ADMIN con `include_deleted=true`.
 
-**Response (204 No Content)**
+**Respuesta (204 No Content)**
 
-**Error Responses:**
-- `400 Bad Request`: Cannot delete category with associated products
+**Errores:**
+- `400 Bad Request`: La categoría tiene productos activos asociados
   ```json
-  {
-    "detail": "Cannot delete category with associated products"
-  }
+  { "detail": "Cannot delete category with associated products" }
   ```
-- `403 Forbidden`: User is not an admin
-- `404 Not Found`: Category doesn't exist or already deleted
+- `403 Forbidden`: El usuario no tiene rol ADMIN
+- `404 Not Found`: La categoría no existe o ya fue eliminada
 
 ---
 
-## Slug Generation
+### 6. Restaurar Categoría
 
-When a category is created or updated, the API automatically generates a URL-friendly slug:
-- Converts to lowercase
-- Replaces spaces with hyphens
-- Removes special characters
-- Ensures uniqueness by appending numeric suffix if needed (e.g., "fruits-1", "fruits-2")
+**Endpoint:** `PATCH /api/v1/categorias/{category_id}/restore`
 
-**Example:** `"Organic Fruits & Veggies"` → `"organic-fruits--veggies"` (or `"organic-fruits--veggies-1"` if exists)
+**Rol requerido:** ADMIN
 
----
+**Parámetros de ruta:**
+- `category_id` (entero): ID de la categoría a restaurar
 
-## Soft Delete Pattern
-
-All categories use soft delete:
-- Deleted categories are never permanently removed from the database
-- `deleted_at` field is set to the deletion timestamp
-- Deleted categories are excluded from public queries by default
-- Admin users can view deleted categories with `include_deleted=true` parameter
-- Products associated with deleted categories retain their category_id but the category won't be returned in public queries
+**Respuesta (200 OK):** Devuelve la categoría restaurada con `deleted_at: null`.
 
 ---
 
-## Relationships
+## Generación de Slug
 
-### Products Association
+Al crear o actualizar una categoría, la API genera automáticamente un slug amigable para URLs:
+- Convierte a minúsculas
+- Reemplaza espacios por guiones
+- Elimina caracteres especiales
+- Garantiza unicidad añadiendo sufijo numérico si es necesario (ej. `"frutas-1"`, `"frutas-2"`)
 
-Categories have a one-to-many relationship with Products:
-- A category can have many products
-- A product can belong to at most one category (category_id is nullable)
-- Deleting a category with associated products returns `400 Bad Request`
-- To remove a product from a category, update the product with `category_id: null`
+**Ejemplo:** `"Frutas Orgánicas & Frescas"` → `"frutas-organicas--frescas"`
 
 ---
 
-## Access Control
+## Patrón Soft Delete
 
-| Operation | Required Role | Notes |
+Todas las categorías usan eliminación lógica:
+- Las categorías eliminadas **nunca se borran físicamente** de la base de datos
+- El campo `deleted_at` se establece con el timestamp de eliminación
+- Las categorías eliminadas se excluyen de consultas públicas por defecto
+- Los administradores pueden ver categorías eliminadas con `include_deleted=true`
+
+---
+
+## Relación con Productos
+
+Las categorías tienen una relación **many-to-many** con Productos, implementada mediante la tabla intermedia `ProductCategory`:
+- Un producto puede pertenecer a **múltiples** categorías
+- Una categoría puede contener **múltiples** productos
+- Eliminar una categoría que tiene productos activos retorna `400 Bad Request`
+- Para desasociar un producto de todas sus categorías, actualizar el producto con `category_ids: []`
+
+---
+
+## Control de Acceso
+
+| Operación | Rol requerido | Notas |
 |-----------|---------------|-------|
-| Create Category | ADMIN | Only admins can create new categories |
-| List Categories | Any | Non-admins see non-deleted only; admins can filter with `include_deleted` |
-| Get Single | Any | Public read access, soft-deleted categories not returned |
-| Update Category | ADMIN | Only admins can modify categories |
-| Delete Category | ADMIN | Only admins can delete; validation checks for products |
+| Crear categoría | ADMIN | Solo admins pueden crear |
+| Listar categorías | Cualquiera | Sin ADMIN: solo activas; con ADMIN: puede filtrar con `include_deleted` |
+| Obtener por ID | Cualquiera | Acceso público de lectura; eliminadas no se retornan |
+| Actualizar categoría | ADMIN | Solo admins pueden modificar |
+| Eliminar categoría | ADMIN | Soft delete; valida que no tenga productos activos |
+| Restaurar categoría | ADMIN | Solo admins pueden restaurar |
 
 ---
 
-## Error Handling
+## Manejo de Errores
 
-All error responses follow the RFC 7807 Problem Details format:
+Todas las respuestas de error siguen el formato RFC 7807:
 
 ```json
 {
-  "detail": "Error message describing what went wrong"
+  "detail": "Mensaje describiendo el error"
 }
 ```
 
-**Common HTTP Status Codes:**
-- `201 Created`: Category created successfully
-- `200 OK`: Request successful
-- `204 No Content`: Delete successful (no body)
-- `400 Bad Request`: Invalid data or business rule violation
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server error
+**Códigos HTTP comunes:**
+- `201 Created`: Categoría creada exitosamente
+- `200 OK`: Solicitud exitosa
+- `204 No Content`: Eliminación exitosa (sin cuerpo de respuesta)
+- `400 Bad Request`: Datos inválidos o violación de regla de negocio
+- `403 Forbidden`: Permisos insuficientes
+- `404 Not Found`: Recurso no encontrado
+- `500 Internal Server Error`: Error interno del servidor
 
 ---
 
-## Rate Limiting
+## Ejemplos (curl)
 
-- No specific rate limits on category endpoints
-- General API rate limits apply per user/token
-
----
-
-## Examples
-
-### Create a new category (curl)
+### Crear categoría
 
 ```bash
-curl -X POST http://localhost:8000/api/categories \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+curl -X POST http://localhost:8000/api/v1/categorias \
+  -H "Authorization: Bearer TU_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Fruits",
-    "description": "Fresh fruits"
-  }'
+  -d '{"name": "Frutas", "description": "Frutas frescas"}'
 ```
 
-### List all categories
+### Listar categorías paginadas
 
 ```bash
-curl -X GET http://localhost:8000/api/categories \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl -X GET "http://localhost:8000/api/v1/categorias?skip=0&limit=10" \
+  -H "Authorization: Bearer TU_TOKEN"
 ```
 
-### Get single category
+### Obtener categoría por ID
 
 ```bash
-curl -X GET http://localhost:8000/api/categories/1 \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl -X GET http://localhost:8000/api/v1/categorias/1 \
+  -H "Authorization: Bearer TU_TOKEN"
 ```
 
-### Update category
+### Actualizar categoría
 
 ```bash
-curl -X PUT http://localhost:8000/api/categories/1 \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+curl -X PUT http://localhost:8000/api/v1/categorias/1 \
+  -H "Authorization: Bearer TU_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Fresh Fruits",
-    "description": "Organic fresh fruits"
-  }'
+  -d '{"name": "Frutas Frescas", "description": "Frutas orgánicas"}'
 ```
 
-### Delete category
+### Eliminar categoría
 
 ```bash
-curl -X DELETE http://localhost:8000/api/categories/1 \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl -X DELETE http://localhost:8000/api/v1/categorias/1 \
+  -H "Authorization: Bearer TU_TOKEN"
 ```
 
 ---
 
 ## OpenAPI / Swagger
 
-The complete API schema is available in OpenAPI format at:
+El esquema completo de la API está disponible en formato OpenAPI en:
 - **JSON:** `GET /openapi.json`
-- **Swagger UI:** Visit `/docs` in your browser
-- **ReDoc:** Visit `/redoc` in your browser
+- **Swagger UI:** Visitar `/docs` en el navegador
+- **ReDoc:** Visitar `/redoc` en el navegador
 
-Interactive documentation is available in the Swagger UI where you can test all endpoints directly.
+La documentación interactiva en Swagger UI permite probar todos los endpoints directamente desde el navegador.
