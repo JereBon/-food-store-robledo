@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Update product stock atomically
 The system SHALL provide an endpoint for ADMIN and STOCK roles to update product stock with atomic operations. Stock is also decremented automatically when an order transitions from PENDIENTE to CONFIRMADO (payment approved). Stock is validated but NOT decremented at order creation time (RN-FS02).
@@ -22,14 +22,3 @@ The system SHALL provide an endpoint for ADMIN and STOCK roles to update product
 #### Scenario: Stock decremented when payment approved
 - **WHEN** MercadoPago approves payment for an order containing 2 units of product A (stock = 10)
 - **THEN** product A stock becomes 8 within the same transaction that records the payment
-
-### Requirement: Product stock visible in management UI
-The system SHALL display current stock in product management pages and allow inline stock updates.
-
-#### Scenario: Stock shown in product detail
-- **WHEN** ADMIN views product detail in management page
-- **THEN** current stock is displayed
-
-#### Scenario: Stock update reflects immediately
-- **WHEN** STOCK user updates stock
-- **THEN** subsequent product GET returns updated stock value

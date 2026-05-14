@@ -46,6 +46,7 @@ describe('orderStore', () => {
 
     const order = await useOrderStore.getState().placeOrder({
       direccion_id: 1,
+      forma_pago_id: 1,
       items: [{ producto_id: 1, cantidad: 2, exclusiones: [] }],
     })
 
@@ -62,7 +63,7 @@ describe('orderStore', () => {
     vi.mocked(http.post).mockRejectedValueOnce(apiError)
 
     await expect(
-      useOrderStore.getState().placeOrder({ direccion_id: 1, items: [] }),
+      useOrderStore.getState().placeOrder({ direccion_id: 1, forma_pago_id: 1, items: [] }),
     ).rejects.toBeDefined()
 
     expect(useOrderStore.getState().error).toBe('Stock insuficiente para producto 1')

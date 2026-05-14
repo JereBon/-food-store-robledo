@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCartStore } from '@/shared/stores/cartStore'
 import { useAuthStore } from '@/shared/stores/authStore'
 import { useOrderStore } from '@/shared/stores/orderStore'
+import { usePaymentStore } from '@/shared/stores/paymentStore'
 import { AddressList } from '@/features/checkout/AddressList'
 import { AddressForm } from '@/features/checkout/AddressForm'
 import { CartSummary } from '@/features/checkout/CartSummary'
@@ -15,7 +16,10 @@ import {
   setDireccionPredeterminada,
   restoreDireccion,
 } from '@/features/checkout/api'
+import { http } from '@/shared/api/http'
 import type { DireccionEntrega } from '@/features/checkout/api'
+
+type FormaPago = { id: number; nombre: string; activo: boolean }
 
 export function CheckoutPage() {
   const navigate = useNavigate()
@@ -23,6 +27,7 @@ export function CheckoutPage() {
   const { accessToken } = useAuthStore()
 
   const { placeOrder, isLoading, error } = useOrderStore()
+  const { startCheckout } = usePaymentStore()
 
   const [addresses, setAddresses] = useState<DireccionEntrega[]>([])
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null)
@@ -32,6 +37,8 @@ export function CheckoutPage() {
   const [showDeleted, setShowDeleted] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [loadingAddresses, setLoadingAddresses] = useState(true)
+  const [formasPago, setFormasPago] = useState<FormaPago[]>([])
+  const [selectedFormaPagoId, setSelectedFormaPagoId] = useState<number | null>(null)
 
   // Guards
   useEffect(() => {
@@ -56,6 +63,13 @@ export function CheckoutPage() {
 
     fetchDireccionesEliminadas()
       .then(setDeletedAddresses)
+      .catch(() => {})
+
+    http.get<FormaPago[]>('/pagos/formas-pago')
+      .then((r) => {
+        setFormasPago(r.data)
+        if (r.data.length > 0) setSelectedFormaPagoId(r.data[0].id)
+      })
       .catch(() => {})
   }, [accessToken, items.length, navigate])
 
@@ -127,9 +141,10 @@ export function CheckoutPage() {
   }
 
   const handleConfirm = async () => {
-    if (!selectedAddressId) return
+    if (!selectedAddressId || !selectedFormaPagoId) return
     const payload = {
       direccion_id: selectedAddressId,
+      forma_pago_id: selectedFormaPagoId,
       items: items.map((i) => ({
         producto_id: i.productId,
         cantidad: i.quantity,
@@ -139,9 +154,10 @@ export function CheckoutPage() {
     try {
       const order = await placeOrder(payload)
       clearCart()
-      navigate(`/orders/${order.id}`, { replace: true })
+      const initPoint = await startCheckout(order.id)
+      window.location.href = initPoint
     } catch {
-      // Error is already set in orderStore and displayed inline
+      // Error is already set in orderStore or paymentStore and displayed inline
     }
   }
 
@@ -154,6 +170,7 @@ export function CheckoutPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Address section */}
         <section>
+
           <h2 className="text-lg font-semibold mb-4">Dirección de entrega</h2>
           {loadingAddresses ? (
             <p className="text-gray-500">Cargando direcciones...</p>
@@ -201,6 +218,28 @@ export function CheckoutPage() {
             <CartSummary items={items} totalPrice={totalPrice()} />
           </div>
 
+          {/* Forma de pago */}
+          {formasPago.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-base font-semibold mb-2">Forma de pago</h3>
+              <div className="space-y-2">
+                {formasPago.map((fp) => (
+                  <label key={fp.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="forma_pago"
+                      value={fp.id}
+                      checked={selectedFormaPagoId === fp.id}
+                      onChange={() => setSelectedFormaPagoId(fp.id)}
+                      className="accent-green-600"
+                    />
+                    <span className="text-sm">{fp.nombre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
               {error}
@@ -209,7 +248,7 @@ export function CheckoutPage() {
 
           <button
             onClick={handleConfirm}
-            disabled={!selectedAddressId || isLoading}
+            disabled={!selectedAddressId || !selectedFormaPagoId || isLoading}
             className="mt-6 w-full py-3 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? 'Confirmando...' : 'Confirmar pedido'}

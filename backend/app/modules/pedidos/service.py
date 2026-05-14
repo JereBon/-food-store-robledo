@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import List
 
 from app.modules.direcciones.repository import DireccionRepository
+from app.modules.pagos.repository import FormaPagoRepository
 from app.modules.pedidos.model import DetallePedido, HistorialEstadoPedido, Pedido
 from app.modules.pedidos.repository import PedidoRepository
 from app.modules.pedidos.schemas import ItemCreate, PedidoCreate
@@ -24,15 +25,21 @@ class PedidoService:
         pedido_repo: PedidoRepository,
         direccion_repo: DireccionRepository,
         producto_repo: ProductRepository,
+        forma_pago_repo: FormaPagoRepository,
     ):
         self.pedido_repo = pedido_repo
         self.direccion_repo = direccion_repo
         self.producto_repo = producto_repo
+        self.forma_pago_repo = forma_pago_repo
 
     def create_order(self, usuario_id: int, data: PedidoCreate) -> Pedido:
         direccion = self.direccion_repo.get_by_id_and_user(data.direccion_id, usuario_id)
         if not direccion:
             raise ValueError(f"Dirección {data.direccion_id} no encontrada")
+
+        forma_pago = self.forma_pago_repo.get_by_id(data.forma_pago_id)
+        if not forma_pago or not forma_pago.activo:
+            raise ValueError(f"Forma de pago {data.forma_pago_id} no válida o inactiva")
 
         # Validate stock for all items before any INSERT (SELECT FOR UPDATE)
         stock_errors: List[InsufficientStockError] = []
@@ -60,6 +67,7 @@ class PedidoService:
         pedido = Pedido(
             usuario_id=usuario_id,
             estado_id=1,
+            forma_pago_id=data.forma_pago_id,
             total=total,
             costo_envio=Decimal("0.00"),
             direccion_calle=direccion.calle,
@@ -90,12 +98,7 @@ class PedidoService:
         )
         self.pedido_repo.create_historial(historial)
 
-        # Decrease stock for each product (within the same transaction)
-        for item in data.items:
-            product = self.producto_repo.get_by_id(item.producto_id)
-            if product:
-                product.stock -= item.cantidad
-                self.producto_repo.session.add(product)
+        # Stock is NOT decremented here — decremented on PENDIENTE→CONFIRMADO (payment approved, RN-FS02)
 
         return pedido
 

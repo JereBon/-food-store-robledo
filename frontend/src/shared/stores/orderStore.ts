@@ -44,6 +44,7 @@ export type OrderListItem = {
 
 export type PlaceOrderPayload = {
   direccion_id: number
+  forma_pago_id: number
   items: { producto_id: number; cantidad: number; exclusiones: number[] }[]
 }
 

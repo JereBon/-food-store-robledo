@@ -48,3 +48,7 @@ class PedidoRepository(BaseRepository[Pedido]):
     def create_historial(self, historial: HistorialEstadoPedido) -> HistorialEstadoPedido:
         self.session.add(historial)
         return historial
+
+    def get_detalles_by_pedido(self, pedido_id: int) -> list[DetallePedido]:
+        stmt = select(DetallePedido).where(DetallePedido.pedido_id == pedido_id)
+        return list(self.session.exec(stmt).all())
