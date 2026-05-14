@@ -9,6 +9,6 @@
 | **us-004-productos** | EPIC 05 & 06 (Sprint 3) | [cite_start]CRUD de productos, stock, asociación de categorías y gestión del perfil de cliente. [cite: 2077, 2078, 2079] | ✅ Completado |
 | **us-005-carrito** | EPIC 08 (Sprint 4) | [cite_start]Carrito persistente client-side con Zustand y personalización de ingredientes. [cite: 2080, 2081] | ✅ Completado |
 | **us-006-pedidos** | EPIC 09 & 10 (Sprint 5) | [cite_start]Validación de disponibilidad y creación atómica de pedidos con Snapshots (UoW). [cite: 2082, 2083] | ✅ Completado |
-| **us-009-direcciones**| EPIC 07 (Sprint 4) | [cite_start]CRUD de direcciones de entrega, selección de dirección predeterminada, soft-delete con recuperación. | ✅ Completado (incluido en US-006) |
 | **us-007-pagos-mp** | EPIC 11 & 12 (Sprint 6) | Integración MercadoPago, webhooks IPN, Máquina de Estados (FSM) del pedido y páginas de resultado de pago. | ✅ Completado |
-| **us-008-admin | EPIC 15, 16, 17 (Sprint 8) | Panel de administraci�n, m�tricas con recharts, gesti�n de usuarios, expansi�n RBAC y correcciones de flujo de compra. | ? Completado |
+| **us-008-admin | EPIC 15, 16, 17 (Sprint 8) | Panel de administraci�n, m�tricas con recharts, gesti�n de usuarios, expansi�n RBAC y correcciones de flujo de compra. | ✅ Completado |
+| **us-009-direcciones**| EPIC 07 (Sprint 4) | CRUD de direcciones de entrega, selección de dirección predeterminada, soft-delete con recuperación. Implementado junto a US-006; formalizado post-facto con artefactos OpenSpec. | ✅ Completado |
