@@ -10,6 +10,7 @@ class Pedido(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     usuario_id: int = Field(foreign_key="user.id", index=True)
     estado_id: int = Field(foreign_key="orderstate.id", default=1, index=True)
+    forma_pago_id: Optional[int] = Field(default=None, foreign_key="formapago.id")
     total: Decimal = Field(decimal_places=2, max_digits=10)
     costo_envio: Decimal = Field(decimal_places=2, max_digits=10, default=Decimal("0.00"))
     # Address snapshot

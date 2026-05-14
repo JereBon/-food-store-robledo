@@ -12,6 +12,9 @@ import { IngredientListPage } from '@/pages/admin/ingredients'
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage'
 import { OrdersPage } from '@/pages/orders/OrdersPage'
 import { OrderDetailPage } from '@/pages/orders/OrderDetailPage'
+import { ExitoPage } from '@/pages/pago/ExitoPage'
+import { PendientePage } from '@/pages/pago/PendientePage'
+import { FalloPage } from '@/pages/pago/FalloPage'
 import { ProtectedRoute } from '@/shared/routing/ProtectedRoute'
 import { CartDrawer } from '@/shared/components/CartDrawer'
 
@@ -47,6 +50,9 @@ export function AppRouter() {
             </ProtectedRoute>
           }
         />
+        <Route path="/pago/exito" element={<ExitoPage />} />
+        <Route path="/pago/pendiente" element={<PendientePage />} />
+        <Route path="/pago/fallo" element={<FalloPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/403" element={<ForbiddenPage />} />

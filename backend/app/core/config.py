@@ -19,6 +19,10 @@ class Settings:
     cors_origins: list[str]
     seed_admin_email: str
     seed_admin_password: str
+    mercadopago_access_token: str
+    mercadopago_public_key: str
+    frontend_url: str
+    backend_url: str
 
 
 def _load_settings() -> Settings:
@@ -35,6 +39,10 @@ def _load_settings() -> Settings:
         cors_origins=_split_csv(os.getenv("CORS_ORIGINS", "http://localhost:5173")),
         seed_admin_email=os.getenv("SEED_ADMIN_EMAIL", "admin@foodstore.local"),
         seed_admin_password=os.getenv("SEED_ADMIN_PASSWORD", "admin123"),
+        mercadopago_access_token=os.getenv("MERCADOPAGO_ACCESS_TOKEN", "TEST-change-me"),
+        mercadopago_public_key=os.getenv("MERCADOPAGO_PUBLIC_KEY", "TEST-change-me"),
+        frontend_url=os.getenv("FRONTEND_URL", "http://localhost:5173"),
+        backend_url=os.getenv("BACKEND_URL", "http://localhost:8000"),
     )
 
 

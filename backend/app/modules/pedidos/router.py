@@ -7,6 +7,7 @@ from app.core.deps import get_current_user
 from app.core.rate_limit import limiter
 from app.db.models import OrderState, User
 from app.modules.direcciones.repository import DireccionRepository
+from app.modules.pagos.repository import FormaPagoRepository
 from app.modules.pedidos.repository import PedidoRepository
 from app.modules.pedidos.schemas import (
     DetallePedidoResponse,
@@ -29,6 +30,7 @@ def _get_service(uow: UnitOfWork) -> PedidoService:
         pedido_repo=PedidoRepository(uow.session),
         direccion_repo=DireccionRepository(uow.session),
         producto_repo=ProductRepository(uow.session),
+        forma_pago_repo=FormaPagoRepository(uow.session),
     )
 
 

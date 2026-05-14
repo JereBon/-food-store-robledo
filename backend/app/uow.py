@@ -9,6 +9,7 @@ from app.modules.refreshtokens.repository import RefreshTokensRepository
 from app.modules.usuarios.repository import UsersRepository
 from app.modules.direcciones.repository import DireccionRepository  # noqa: E402
 from app.modules.pedidos.repository import PedidoRepository  # noqa: E402
+from app.modules.pagos.repository import FormaPagoRepository, PagoRepository  # noqa: E402
 
 
 class UnitOfWork(AbstractContextManager):
@@ -19,6 +20,8 @@ class UnitOfWork(AbstractContextManager):
         self.refresh_tokens: RefreshTokensRepository
         self.direcciones: DireccionRepository
         self.pedidos: PedidoRepository
+        self.pagos: PagoRepository
+        self.formas_pago: FormaPagoRepository
 
     def __enter__(self):
         self.session = Session(self._engine, expire_on_commit=False)
@@ -26,6 +29,8 @@ class UnitOfWork(AbstractContextManager):
         self.refresh_tokens = RefreshTokensRepository(self.session)
         self.direcciones = DireccionRepository(self.session)
         self.pedidos = PedidoRepository(self.session)
+        self.pagos = PagoRepository(self.session)
+        self.formas_pago = FormaPagoRepository(self.session)
         return self
 
     def __exit__(self, exc_type, exc, tb):

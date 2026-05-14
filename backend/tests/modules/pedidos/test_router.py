@@ -10,6 +10,7 @@ from app.core.security import create_access_token, hash_password
 from app.db.models import OrderState, Role, User, UserRole
 from app.main import app
 from app.modules.direcciones.model import DireccionEntrega
+from app.modules.pagos.model import FormaPago
 from app.modules.productos.model import Product
 
 
@@ -28,6 +29,7 @@ def client(session, sqlite_engine):
 def setup_db(session):
     session.add(Role(id=4, code="CLIENT", name="Cliente"))
     session.add(OrderState(id=1, code="PENDIENTE", name="Pendiente", is_terminal=False))
+    session.add(FormaPago(id=1, nombre="Tarjeta de crédito", activo=True))
     session.commit()
 
     user = User(
@@ -70,13 +72,17 @@ def _headers(token):
     return {"Authorization": f"Bearer {token}"}
 
 
+def _pedido_payload(db):
+    return {
+        "direccion_id": db["direccion"].id,
+        "forma_pago_id": 1,
+        "items": [{"producto_id": db["product"].id, "cantidad": 2, "exclusiones": []}],
+    }
+
+
 def test_create_pedido_success(client, setup_db):
     db = setup_db
-    resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": db["direccion"].id, "items": [{"producto_id": db["product"].id, "cantidad": 2, "exclusiones": []}]},
-        headers=_headers(db["token"]),
-    )
+    resp = client.post("/api/v1/pedidos", json=_pedido_payload(db), headers=_headers(db["token"]))
     assert resp.status_code == 201
     data = resp.json()
     assert data["estado_id"] == 1
@@ -84,13 +90,19 @@ def test_create_pedido_success(client, setup_db):
     assert len(data["items"]) == 1
 
 
+def test_create_pedido_stock_not_decremented_at_creation(client, setup_db, session):
+    db = setup_db
+    resp = client.post("/api/v1/pedidos", json=_pedido_payload(db), headers=_headers(db["token"]))
+    assert resp.status_code == 201
+    product = session.exec(select(Product).where(Product.id == db["product"].id)).first()
+    # Stock must NOT be decremented at order creation per RN-FS02
+    assert product.stock == 10
+
+
 def test_create_pedido_missing_direccion(client, setup_db):
     db = setup_db
-    resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": 9999, "items": [{"producto_id": db["product"].id, "cantidad": 1, "exclusiones": []}]},
-        headers=_headers(db["token"]),
-    )
+    payload = {**_pedido_payload(db), "direccion_id": 9999}
+    resp = client.post("/api/v1/pedidos", json=payload, headers=_headers(db["token"]))
     assert resp.status_code == 404
 
 
@@ -101,11 +113,8 @@ def test_create_pedido_insufficient_stock(client, setup_db, session):
     session.add(product)
     session.commit()
 
-    resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": db["direccion"].id, "items": [{"producto_id": db["product"].id, "cantidad": 5, "exclusiones": []}]},
-        headers=_headers(db["token"]),
-    )
+    payload = {**_pedido_payload(db), "items": [{"producto_id": db["product"].id, "cantidad": 5, "exclusiones": []}]}
+    resp = client.post("/api/v1/pedidos", json=payload, headers=_headers(db["token"]))
     assert resp.status_code == 422
 
 
@@ -118,11 +127,7 @@ def test_list_pedidos_empty(client, setup_db):
 
 def test_get_pedido_own(client, setup_db):
     db = setup_db
-    create_resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": db["direccion"].id, "items": [{"producto_id": db["product"].id, "cantidad": 1, "exclusiones": []}]},
-        headers=_headers(db["token"]),
-    )
+    create_resp = client.post("/api/v1/pedidos", json=_pedido_payload(db), headers=_headers(db["token"]))
     assert create_resp.status_code == 201
     pedido_id = create_resp.json()["id"]
 
@@ -139,11 +144,7 @@ def test_get_pedido_other_user_forbidden(client, setup_db, session):
     session.refresh(user2)
     token2 = _token(user2.id)
 
-    create_resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": db["direccion"].id, "items": [{"producto_id": db["product"].id, "cantidad": 1, "exclusiones": []}]},
-        headers=_headers(db["token"]),
-    )
+    create_resp = client.post("/api/v1/pedidos", json=_pedido_payload(db), headers=_headers(db["token"]))
     pedido_id = create_resp.json()["id"]
 
     resp = client.get(f"/api/v1/pedidos/{pedido_id}", headers=_headers(token2))
@@ -152,8 +153,5 @@ def test_get_pedido_other_user_forbidden(client, setup_db, session):
 
 def test_create_pedido_unauthenticated(client, setup_db):
     db = setup_db
-    resp = client.post(
-        "/api/v1/pedidos",
-        json={"direccion_id": db["direccion"].id, "items": [{"producto_id": db["product"].id, "cantidad": 1}]},
-    )
+    resp = client.post("/api/v1/pedidos", json=_pedido_payload(db))
     assert resp.status_code == 401

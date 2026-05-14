@@ -13,6 +13,7 @@ class ItemCreate(BaseModel):
 
 class PedidoCreate(BaseModel):
     direccion_id: int
+    forma_pago_id: int
     items: List[ItemCreate]
 
 
