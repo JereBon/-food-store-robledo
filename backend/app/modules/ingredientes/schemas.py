@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class IngredienteBase(BaseModel):
@@ -19,23 +19,21 @@ class IngredienteUpdate(BaseModel):
 
 
 class IngredienteRead(IngredienteBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
-
 
 class IngredientReadShort(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     nombre: str
     es_alergeno: bool
     es_removible: bool = False
-
-    class Config:
-        from_attributes = True
 
 
 class IngredientListResponse(BaseModel):

@@ -97,10 +97,14 @@ def test_listar_formas_pago(client, setup_db):
     assert "Tarjeta de débito" in nombres
 
 
+@patch("app.modules.pagos.service.settings")
 @patch("app.modules.pagos.service._get_sdk")
-def test_crear_preferencia_success(mock_sdk, client, setup_db):
+def test_crear_preferencia_success(mock_sdk, mock_settings, client, setup_db):
+    mock_settings.backend_url = "https://api.production.com"
+    mock_settings.frontend_url = "https://app.production.com"
     sdk = MagicMock()
     sdk.preference.return_value.create.return_value = {
+        "status": 201,
         "response": {"id": "pref-abc", "init_point": "https://mp.com/pay/pref-abc"}
     }
     mock_sdk.return_value = sdk

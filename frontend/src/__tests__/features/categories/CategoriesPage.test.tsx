@@ -25,8 +25,8 @@ describe('CategoriesPage', () => {
     vi.clearAllMocks();
 
     // Default mocks
-    (api.useCategories as any).mockReturnValue({
-      data: mockCategories,
+    (api.useCategoriesPaginated as any).mockReturnValue({
+      data: { items: mockCategories, total: mockCategories.length, skip: 0, limit: 10 },
       isLoading: false,
       error: null,
     });
@@ -260,8 +260,8 @@ describe('CategoriesPage', () => {
   });
 
   it('shows loading state in list when fetching', () => {
-    (api.useCategories as any).mockReturnValue({
-      data: [],
+    (api.useCategoriesPaginated as any).mockReturnValue({
+      data: undefined,
       isLoading: true,
       error: null,
     });
@@ -276,8 +276,8 @@ describe('CategoriesPage', () => {
   });
 
   it('shows error message if loading fails', () => {
-    (api.useCategories as any).mockReturnValue({
-      data: [],
+    (api.useCategoriesPaginated as any).mockReturnValue({
+      data: undefined,
       isLoading: false,
       error: new Error('Failed to load categories'),
     });

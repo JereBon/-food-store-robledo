@@ -20,3 +20,7 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# Logs
+*.log
+*.err

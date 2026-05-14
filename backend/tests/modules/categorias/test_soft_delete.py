@@ -7,8 +7,9 @@ from datetime import datetime
 from sqlmodel import Session, create_engine
 from sqlmodel.pool import StaticPool
 
-from app.db.models import Category
+from app.modules.categorias.model import Category
 from app.modules.productos.model import Product
+from app.modules.productos.pivot import ProductCategory
 from app.modules.categorias.repository import CategoryRepository
 
 
@@ -49,12 +50,12 @@ class TestCategoryDeletion:
         session.commit()
         session.refresh(cat)
 
-        # Add product
-        prod = Product(name="Apple", price=1.50, category_id=cat.id)
+        prod = Product(name="Apple", price=1.50)
         session.add(prod)
+        session.flush()
+        session.add(ProductCategory(product_id=prod.id, category_id=cat.id))
         session.commit()
 
-        # Check
         result = repo.check_has_products(cat.id)
         assert result is True
 
@@ -76,17 +77,12 @@ class TestCategoryDeletion:
         session.commit()
         session.refresh(cat)
 
-        # Add deleted product
-        prod = Product(
-            name="Apple",
-            price=1.50,
-            category_id=cat.id,
-            deleted_at=datetime.utcnow(),
-        )
+        prod = Product(name="Apple", price=1.50, deleted_at=datetime.utcnow())
         session.add(prod)
+        session.flush()
+        session.add(ProductCategory(product_id=prod.id, category_id=cat.id))
         session.commit()
 
-        # Check - should return False since product is deleted
         result = repo.check_has_products(cat.id)
         assert result is False
 
