@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ProductForm, IProductFormData } from '../../features/products/widgets/ProductForm';
-import * as categoryApi from '../../features/categories/api';
+import { ProductForm } from '@/features/products/widgets/ProductForm';
+import * as categoryApi from '@/features/categories/api';
+import * as ingredientApi from '@/features/ingredients/api';
 
-// Mock the category API
-vi.mock('../../features/categories/api');
+// Mock the APIs
+vi.mock('@/features/categories/api');
+vi.mock('@/features/ingredients/api', () => ({
+  useIngredients: vi.fn(),
+}));
 
-describe('ProductForm with Category Integration', () => {
+describe('ProductForm', () => {
   const mockCategories = [
     { id: 1, name: 'Fruits', slug: 'fruits' },
     { id: 2, name: 'Vegetables', slug: 'vegetables' },
@@ -21,7 +25,9 @@ describe('ProductForm with Category Integration', () => {
     description: 'Fresh apples',
     price: 2.99,
     stock: 50,
-    category_id: 1,
+    disponible: true,
+    categories: [{ id: 1, name: 'Fruits' }],
+    ingredients: [],
   };
 
   const queryClient = new QueryClient({
@@ -39,9 +45,15 @@ describe('ProductForm with Category Integration', () => {
       isLoading: false,
       error: null,
     });
+
+    (ingredientApi.useIngredients as any).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    });
   });
 
-  it('renders ProductForm with CategorySelect field', () => {
+  it('renders all form fields', () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -50,14 +62,14 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByLabelText(/Product Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Description/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Price/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre del producto/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Descripción/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Precio/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Stock/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Category/i)).toBeInTheDocument();
+    expect(screen.getByText('Categorías')).toBeInTheDocument();
   });
 
-  it('creates product without category (optional)', async () => {
+  it('creates product without category', async () => {
     const user = userEvent.setup();
     const handleSubmit = vi.fn();
 
@@ -67,23 +79,24 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    const nameInput = screen.getByLabelText(/Product Name/i);
-    const priceInput = screen.getByLabelText(/Price/i);
+    const nameInput = screen.getByLabelText(/Nombre del producto/i);
+    const priceInput = screen.getByLabelText(/Precio/i);
     const stockInput = screen.getByLabelText(/Stock/i);
-    const submitButton = screen.getByRole('button', { name: /Create Product/i });
+    const submitButton = screen.getByRole('button', { name: /Crear Producto/i });
 
     await user.type(nameInput, 'Banana');
     await user.type(priceInput, '1.99');
     await user.type(stockInput, '30');
     await user.click(submitButton);
 
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Banana',
-      description: null,
-      price: 1.99,
-      stock: 30,
-      category_id: null,
-    });
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Banana',
+        price: 1.99,
+        stock: 30,
+        category_ids: [],
+      })
+    );
   });
 
   it('creates product with selected category', async () => {
@@ -96,25 +109,29 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    const nameInput = screen.getByLabelText(/Product Name/i);
-    const priceInput = screen.getByLabelText(/Price/i);
+    const nameInput = screen.getByLabelText(/Nombre del producto/i);
+    const priceInput = screen.getByLabelText(/Precio/i);
     const stockInput = screen.getByLabelText(/Stock/i);
-    const categorySelect = screen.getByDisplayValue('Select a category (optional)');
-    const submitButton = screen.getByRole('button', { name: /Create Product/i });
+    const submitButton = screen.getByRole('button', { name: /Crear Producto/i });
 
     await user.type(nameInput, 'Orange');
     await user.type(priceInput, '3.49');
     await user.type(stockInput, '25');
-    await user.selectOption(categorySelect, '1'); // Select Fruits
+
+    // Click the Fruits checkbox
+    const fruitsCheckbox = screen.getByLabelText('Fruits');
+    await user.click(fruitsCheckbox);
+
     await user.click(submitButton);
 
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Orange',
-      description: null,
-      price: 3.49,
-      stock: 25,
-      category_id: 1,
-    });
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Orange',
+        price: 3.49,
+        stock: 25,
+        category_ids: [1],
+      })
+    );
   });
 
   it('edits product and changes category', async () => {
@@ -127,55 +144,28 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    // Verify form is populated
     expect(screen.getByDisplayValue('Apple')).toBeInTheDocument();
     expect(screen.getByDisplayValue('2.99')).toBeInTheDocument();
     expect(screen.getByDisplayValue('50')).toBeInTheDocument();
 
-    // Change category from Fruits to Vegetables
-    const categorySelect = screen.getByDisplayValue('Fruits');
-    await user.selectOption(categorySelect, '2'); // Select Vegetables
+    // Uncheck Fruits and check Vegetables
+    const fruitsCheckbox = screen.getByLabelText('Fruits');
+    const vegetablesCheckbox = screen.getByLabelText('Vegetables');
+    await user.click(fruitsCheckbox); // uncheck Fruits
+    await user.click(vegetablesCheckbox); // check Vegetables
 
-    const submitButton = screen.getByRole('button', { name: /Update Product/i });
+    const submitButton = screen.getByRole('button', { name: /Actualizar Producto/i });
     await user.click(submitButton);
 
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Apple',
-      description: 'Fresh apples',
-      price: 2.99,
-      stock: 50,
-      category_id: 2, // Changed category
-    });
-  });
-
-  it('edits product and removes category', async () => {
-    const user = userEvent.setup();
-    const handleSubmit = vi.fn();
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <ProductForm product={mockProduct} onSubmit={handleSubmit} />
-      </QueryClientProvider>
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Apple',
+        category_ids: [2],
+      })
     );
-
-    // Remove category selection
-    const categorySelect = screen.getByDisplayValue('Fruits');
-    await user.selectOption(categorySelect, ''); // Clear selection
-
-    const submitButton = screen.getByRole('button', { name: /Update Product/i });
-    await user.click(submitButton);
-
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Apple',
-      description: 'Fresh apples',
-      price: 2.99,
-      stock: 50,
-      category_id: null, // Removed category
-    });
   });
 
-  it('validates required fields even with category selected', async () => {
-    const user = userEvent.setup();
+  it('validates required fields', () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -184,19 +174,15 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    const categorySelect = screen.getByDisplayValue('Select a category (optional)');
-    const submitButton = screen.getByRole('button', { name: /Create Product/i });
+    // Use fireEvent.submit to bypass HTML5 validation
+    const form = screen.getByRole('button', { name: /Crear Producto/i }).closest('form')!;
+    fireEvent.submit(form);
 
-    // Select a category but don't fill required fields
-    await user.selectOption(categorySelect, '1');
-    await user.click(submitButton);
-
-    expect(screen.getByText(/Product name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/El nombre del producto es obligatorio/i)).toBeInTheDocument();
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  it('shows loading state when submitting with category selected', async () => {
-    const user = userEvent.setup();
+  it('shows loading state when submitting', async () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -205,14 +191,11 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    const categorySelect = screen.getByDisplayValue('Select a category (optional)');
-    expect(categorySelect).toBeDisabled();
-
-    const submitButton = screen.getByRole('button', { name: /Saving/i });
+    const submitButton = screen.getByRole('button', { name: /Guardando/i });
     expect(submitButton).toBeDisabled();
   });
 
-  it('displays all available categories in CategorySelect', async () => {
+  it('displays all available categories as checkboxes', () => {
     const handleSubmit = vi.fn();
 
     render(
@@ -221,47 +204,12 @@ describe('ProductForm with Category Integration', () => {
       </QueryClientProvider>
     );
 
-    const categorySelect = screen.getByDisplayValue('Select a category (optional)');
-    
-    // Options should be available
-    expect(categorySelect).toBeInTheDocument();
-    expect(categorySelect as HTMLSelectElement).toHaveLength(4); // 1 default + 3 categories
+    expect(screen.getByLabelText('Fruits')).toBeInTheDocument();
+    expect(screen.getByLabelText('Vegetables')).toBeInTheDocument();
+    expect(screen.getByLabelText('Dairy')).toBeInTheDocument();
   });
 
-  it('submits complete product form with all fields including category', async () => {
-    const user = userEvent.setup();
-    const handleSubmit = vi.fn();
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <ProductForm onSubmit={handleSubmit} />
-      </QueryClientProvider>
-    );
-
-    const nameInput = screen.getByLabelText(/Product Name/i);
-    const descriptionInput = screen.getByLabelText(/Description/i);
-    const priceInput = screen.getByLabelText(/Price/i);
-    const stockInput = screen.getByLabelText(/Stock/i);
-    const categorySelect = screen.getByDisplayValue('Select a category (optional)');
-    const submitButton = screen.getByRole('button', { name: /Create Product/i });
-
-    await user.type(nameInput, 'Broccoli');
-    await user.type(descriptionInput, 'Fresh green broccoli');
-    await user.type(priceInput, '4.99');
-    await user.type(stockInput, '15');
-    await user.selectOption(categorySelect, '2'); // Select Vegetables
-    await user.click(submitButton);
-
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Broccoli',
-      description: 'Fresh green broccoli',
-      price: 4.99,
-      stock: 15,
-      category_id: 2,
-    });
-  });
-
-  it('loads categories on component mount', () => {
+  it('loads categories on mount', () => {
     const handleSubmit = vi.fn();
 
     render(

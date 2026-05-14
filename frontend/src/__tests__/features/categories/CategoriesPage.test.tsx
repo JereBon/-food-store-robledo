@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { CategoriesPage } from '../../features/categories/pages/CategoriesPage';
-import * as api from '../../features/categories/api';
+import { CategoriesPage } from '@/features/categories/pages/CategoriesPage';
+import * as api from '@/features/categories/api';
 
 // Mock the API module
-vi.mock('../../features/categories/api');
+vi.mock('@/features/categories/api');
 
 describe('CategoriesPage', () => {
   const mockCategories = [
@@ -63,8 +63,8 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('Categories Management')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Create Category/i })).toBeInTheDocument();
+    expect(screen.getByText('Gestión de Categorías')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Nueva Categoría/i })).toBeInTheDocument();
   });
 
   it('renders categories list', () => {
@@ -88,20 +88,20 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const createButton = screen.getByRole('button', { name: /Create Category/i });
+    const createButton = screen.getByRole('button', { name: /Nueva Categoría/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Create New Category/i)).toBeInTheDocument();
+      expect(screen.getByText(/Crear Nueva Categoría/i)).toBeInTheDocument();
     });
   });
 
   it('calls create mutation when form is submitted in create mode', async () => {
     const user = userEvent.setup();
-    const mockMutate = vi.fn();
+    const mockMutateAsync = vi.fn().mockResolvedValue(undefined);
 
     (api.useCreateCategory as any).mockReturnValue({
-      mutate: mockMutate,
+      mutateAsync: mockMutateAsync,
       isPending: false,
       error: null,
     });
@@ -112,24 +112,26 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const createButton = screen.getByRole('button', { name: /Create Category/i });
+    const createButton = screen.getByRole('button', { name: /Nueva Categoría/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Create New Category/i)).toBeInTheDocument();
+      expect(screen.getByText(/Crear Nueva Categoría/i)).toBeInTheDocument();
     });
 
-    const nameInput = screen.getByLabelText(/Category Name/i);
-    const descInput = screen.getByLabelText(/Description/i);
-    const submitButton = screen.getByRole('button', { name: /Create Category/i });
+    const nameInput = screen.getByLabelText(/Nombre de la Categoría/i);
+    const descInput = screen.getByLabelText(/Descripción/i);
+    const submitButton = screen.getByRole('button', { name: /Crear Categoría/i });
 
     await user.type(nameInput, 'Dairy');
     await user.type(descInput, 'Milk and cheese');
     await user.click(submitButton);
 
-    expect(mockMutate).toHaveBeenCalledWith({
-      name: 'Dairy',
-      description: 'Milk and cheese',
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        name: 'Dairy',
+        description: 'Milk and cheese',
+      });
     });
   });
 
@@ -142,11 +144,11 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const editButtons = screen.getAllByRole('button', { name: /Edit/i });
+    const editButtons = screen.getAllByRole('button', { name: /Editar/i });
     await user.click(editButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText(/Edit Category/i)).toBeInTheDocument();
+      expect(screen.getByText(/Editar Categoría/i)).toBeInTheDocument();
     });
   });
 
@@ -159,7 +161,7 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const editButtons = screen.getAllByRole('button', { name: /Edit/i });
+    const editButtons = screen.getAllByRole('button', { name: /Editar/i });
     await user.click(editButtons[0]);
 
     await waitFor(() => {
@@ -169,10 +171,10 @@ describe('CategoriesPage', () => {
 
   it('calls update mutation when form is submitted in edit mode', async () => {
     const user = userEvent.setup();
-    const mockMutate = vi.fn();
+    const mockMutateAsync = vi.fn().mockResolvedValue(undefined);
 
     (api.useUpdateCategory as any).mockReturnValue({
-      mutate: mockMutate,
+      mutateAsync: mockMutateAsync,
       isPending: false,
       error: null,
     });
@@ -183,7 +185,7 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const editButtons = screen.getAllByRole('button', { name: /Edit/i });
+    const editButtons = screen.getAllByRole('button', { name: /Editar/i });
     await user.click(editButtons[0]);
 
     await waitFor(() => {
@@ -194,13 +196,17 @@ describe('CategoriesPage', () => {
     await user.clear(nameInput);
     await user.type(nameInput, 'Exotic Fruits');
 
-    const updateButton = screen.getByRole('button', { name: /Update Category/i });
+    const updateButton = screen.getByRole('button', { name: /Actualizar Categoría/i });
     await user.click(updateButton);
 
-    expect(mockMutate).toHaveBeenCalledWith({
-      id: 1,
-      name: 'Exotic Fruits',
-      description: 'Fresh fruits',
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        id: 1,
+        data: {
+          name: 'Exotic Fruits',
+          description: 'Fresh fruits',
+        },
+      });
     });
   });
 
@@ -213,11 +219,11 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const deleteButtons = screen.getAllByRole('button', { name: /Delete/i });
+    const deleteButtons = screen.getAllByRole('button', { name: /Eliminar/i });
     await user.click(deleteButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument();
+      expect(screen.getByText(/¿Estás seguro de que deseas eliminar/i)).toBeInTheDocument();
     });
   });
 
@@ -237,17 +243,20 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const deleteButtons = screen.getAllByRole('button', { name: /Delete/i });
+    // Click the first "Eliminar" in the table (the modal is not yet open)
+    const deleteButtons = screen.getAllByRole('button', { name: /Eliminar/i });
     await user.click(deleteButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument();
+      expect(screen.getByText(/¿Estás seguro de que deseas eliminar/i)).toBeInTheDocument();
     });
 
-    const confirmButton = screen.getByRole('button', { name: /Confirm/i });
+    // Now find the confirm button inside the modal (last "Eliminar" button)
+    const allDeleteButtons = screen.getAllByRole('button', { name: /Eliminar/i });
+    const confirmButton = allDeleteButtons[allDeleteButtons.length - 1];
     await user.click(confirmButton);
 
-    expect(mockMutate).toHaveBeenCalledWith(1);
+    expect(mockMutate).toHaveBeenCalledWith(1, expect.objectContaining({}));
   });
 
   it('shows loading state in list when fetching', () => {
@@ -263,7 +272,7 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/Loading categories/i)).toBeInTheDocument();
+    expect(screen.getByText(/Cargando categorías/i)).toBeInTheDocument();
   });
 
   it('shows error message if loading fails', () => {
@@ -279,15 +288,15 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/Failed to load categories/i)).toBeInTheDocument();
+    expect(screen.getByText(/Error al cargar las categorías/i)).toBeInTheDocument();
   });
 
   it('closes modal after successful submission', async () => {
     const user = userEvent.setup();
-    const mockMutate = vi.fn((callback) => callback?.());
+    const mockMutate = vi.fn().mockResolvedValue(undefined);
 
     (api.useCreateCategory as any).mockReturnValue({
-      mutate: mockMutate,
+      mutateAsync: mockMutate,
       isPending: false,
       error: null,
     });
@@ -298,22 +307,22 @@ describe('CategoriesPage', () => {
       </QueryClientProvider>
     );
 
-    const createButton = screen.getByRole('button', { name: /Create Category/i });
+    const createButton = screen.getByRole('button', { name: /Nueva Categoría/i });
     await user.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Create New Category/i)).toBeInTheDocument();
+      expect(screen.getByText(/Crear Nueva Categoría/i)).toBeInTheDocument();
     });
 
-    const nameInput = screen.getByLabelText(/Category Name/i);
-    const submitButton = screen.getByRole('button', { name: /Create Category/i });
+    const nameInput = screen.getByLabelText(/Nombre de la Categoría/i);
+    const submitButton = screen.getByRole('button', { name: /Crear Categoría/i });
 
     await user.type(nameInput, 'Dairy');
     await user.click(submitButton);
 
     // Modal should be closed after submission
     await waitFor(() => {
-      expect(screen.queryByText(/Create New Category/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Crear Nueva Categoría/i)).not.toBeInTheDocument();
     });
   });
 });

@@ -32,6 +32,15 @@ export const Navigation: FC = () => {
               Catálogo
             </Link>
 
+            {user && (
+              <Link
+                to="/orders"
+                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                Mis Pedidos
+              </Link>
+            )}
+
             {isAdmin && (
               <Link
                 to="/admin/categories"

@@ -9,6 +9,9 @@ import { CartPage } from '@/pages/cart'
 import { CategoriesPage } from '@/features/categories/pages/CategoriesPage'
 import { ProductListPage, ProductCreatePage, ProductEditPage } from '@/pages/admin/products'
 import { IngredientListPage } from '@/pages/admin/ingredients'
+import { CheckoutPage } from '@/pages/checkout/CheckoutPage'
+import { OrdersPage } from '@/pages/orders/OrdersPage'
+import { OrderDetailPage } from '@/pages/orders/OrderDetailPage'
 import { ProtectedRoute } from '@/shared/routing/ProtectedRoute'
 import { CartDrawer } from '@/shared/components/CartDrawer'
 
@@ -20,6 +23,30 @@ export function AppRouter() {
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/catalog/:id" element={<ProductDetailPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <OrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/:id"
+          element={
+            <ProtectedRoute>
+              <OrderDetailPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/403" element={<ForbiddenPage />} />

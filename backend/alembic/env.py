@@ -11,6 +11,8 @@ from app.db import models  # noqa: F401
 from app.modules.categorias import model as _cat_model  # noqa: F401
 from app.modules.productos import model as _prod_model  # noqa: F401
 from app.modules.ingredientes import model as _ing_model  # noqa: F401
+from app.modules.direcciones import model as _dir_model  # noqa: F401
+from app.modules.pedidos import model as _ped_model  # noqa: F401
 from sqlmodel import SQLModel
 
 
