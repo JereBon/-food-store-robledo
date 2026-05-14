@@ -132,13 +132,7 @@ describe('CheckoutPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/catalog', { replace: true })
   })
 
-  it('on confirm calls placeOrder, clearCart, startCheckout and redirects via window.location.href', async () => {
-    const originalLocation = window.location
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { href: '' },
-    })
-
+  it('on confirm calls placeOrder, clearCart, startCheckout and redirects to exito page', async () => {
     mockPlaceOrder.mockResolvedValueOnce({ id: 42 })
     mockStartCheckout.mockResolvedValueOnce('https://mp.com/pay/pref-x')
 
@@ -159,10 +153,8 @@ describe('CheckoutPage', () => {
       expect(payload.forma_pago_id).toBe(1)
       expect(mockClearCart).toHaveBeenCalled()
       expect(mockStartCheckout).toHaveBeenCalledWith(42)
-      expect(window.location.href).toBe('https://mp.com/pay/pref-x')
+      expect(mockNavigate).toHaveBeenCalledWith('/pago/exito?pedido=42')
     })
-
-    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation })
   })
 
   it('shows error inline when placeOrder fails', async () => {

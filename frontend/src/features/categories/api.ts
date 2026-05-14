@@ -7,8 +7,16 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import type { ICategory, ICategoryCreate, ICategoryUpdate } from '../../entities/category';
 import { http } from '@/shared/api/http';
 
+export interface CategoryListResponse {
+  items: ICategory[]
+  total: number
+  skip: number
+  limit: number
+}
+
 /**
- * Fetch all categories (non-deleted)
+ * Fetch all categories (for selects, forms, etc.)
+ * Returns the raw items array from the paginated response.
  */
 export const useCategories = (
   includeDeleted?: boolean
@@ -16,17 +24,35 @@ export const useCategories = (
   return useQuery({
     queryKey: ['categories', { includeDeleted }],
     queryFn: async () => {
-      const params = new URLSearchParams();
+      const params = new URLSearchParams({ skip: '0', limit: '100' });
       if (includeDeleted) {
         params.append('include_deleted', 'true');
       }
+      const { data } = await http.get<CategoryListResponse>(`/categories?${params.toString()}`);
+      return data.items;
+    },
+  });
+};
 
-      try {
-        const { data } = await http.get<ICategory[]>(`/categories?${params.toString()}`);
-        return data;
-      } catch (err: any) {
-        throw new Error(err.response?.data?.detail || err.message || 'Failed to fetch categories');
+/**
+ * Fetch categories with pagination (for admin management page)
+ */
+export const useCategoriesPaginated = (
+  includeDeleted: boolean,
+  skip: number,
+  limit: number = 20
+): UseQueryResult<CategoryListResponse, Error> => {
+  return useQuery({
+    queryKey: ['categories', 'paginated', { includeDeleted, skip, limit }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('skip', String(skip));
+      params.append('limit', String(limit));
+      if (includeDeleted) {
+        params.append('include_deleted', 'true');
       }
+      const { data } = await http.get<CategoryListResponse>(`/categories?${params.toString()}`);
+      return data;
     },
   });
 };

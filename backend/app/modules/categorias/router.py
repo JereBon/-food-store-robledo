@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.deps import get_current_user, get_optional_user, require_role
 from app.db.models import User
 from app.modules.categorias.repository import CategoryRepository
 from app.modules.categorias.service import CategoryService
-from app.modules.categorias.schemas import CategoryCreate, CategoryRead, CategoryUpdate
+from app.modules.categorias.schemas import CategoryCreate, CategoryListResponse, CategoryRead, CategoryUpdate
 from app.uow import UnitOfWork
 
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 @router.post("", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
 def create_category(
     payload: CategoryCreate,
-    user: User = Depends(require_role(["ADMIN"])),
+    user: User = Depends(require_role(["ADMIN", "STOCK"])),
 ):
     with UnitOfWork() as uow:
         repo = CategoryRepository(uow.session)
@@ -29,16 +29,19 @@ def create_category(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@router.get("", response_model=list[CategoryRead])
+@router.get("", response_model=CategoryListResponse)
 def list_categories(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100),
     include_deleted: bool = False,
     user: User | None = Depends(get_optional_user),
 ):
     with UnitOfWork() as uow:
         repo = CategoryRepository(uow.session)
-        include_deleted = include_deleted and user is not None and any(r.code == "ADMIN" for r in (user.roles or []))
-        categories = repo.read_all(include_deleted=include_deleted)
-        return categories
+        can_see_deleted = user is not None and any(r.code in ("ADMIN", "STOCK") for r in (user.roles or []))
+        actual_include = include_deleted and can_see_deleted
+        items, total = repo.read_all_paginated(skip=skip, limit=limit, include_deleted=actual_include)
+        return CategoryListResponse(items=items, total=total, skip=skip, limit=limit)
 
 
 @router.get("/{category_id}", response_model=CategoryRead)
@@ -57,7 +60,7 @@ def get_category(
 def update_category(
     category_id: int,
     payload: CategoryUpdate,
-    user: User = Depends(require_role(["ADMIN"])),
+    user: User = Depends(require_role(["ADMIN", "STOCK"])),
 ):
     with UnitOfWork() as uow:
         repo = CategoryRepository(uow.session)
@@ -78,7 +81,7 @@ def update_category(
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_category(
     category_id: int,
-    user: User = Depends(require_role(["ADMIN"])),
+    user: User = Depends(require_role(["ADMIN", "STOCK"])),
 ):
     with UnitOfWork() as uow:
         repo = CategoryRepository(uow.session)
@@ -93,7 +96,7 @@ def delete_category(
 @router.patch("/{category_id}/restore", response_model=CategoryRead)
 def restore_category(
     category_id: int,
-    user: User = Depends(require_role(["ADMIN"])),
+    user: User = Depends(require_role(["ADMIN", "STOCK"])),
 ):
     with UnitOfWork() as uow:
         repo = CategoryRepository(uow.session)

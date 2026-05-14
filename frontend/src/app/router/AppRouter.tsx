@@ -9,6 +9,9 @@ import { CartPage } from '@/pages/cart'
 import { CategoriesPage } from '@/features/categories/pages/CategoriesPage'
 import { ProductListPage, ProductCreatePage, ProductEditPage } from '@/pages/admin/products'
 import { IngredientListPage } from '@/pages/admin/ingredients'
+import { UsersPage } from '@/pages/admin/users'
+import { DashboardPage } from '@/pages/admin/dashboard'
+import AdminLayout from '@/shared/layouts/AdminLayout'
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage'
 import { OrdersPage } from '@/pages/orders/OrdersPage'
 import { OrderDetailPage } from '@/pages/orders/OrderDetailPage'
@@ -60,7 +63,7 @@ export function AppRouter() {
         <Route
           path="/admin/categories"
           element={
-            <ProtectedRoute roles={['ADMIN']}>
+            <ProtectedRoute roles={['ADMIN', 'STOCK']}>
               <CategoriesPage />
             </ProtectedRoute>
           }
@@ -92,8 +95,29 @@ export function AppRouter() {
         <Route
           path="/admin/ingredients"
           element={
-            <ProtectedRoute roles={['ADMIN']}>
+            <ProtectedRoute roles={['ADMIN', 'STOCK']}>
               <IngredientListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/usuarios"
+          element={
+            <ProtectedRoute roles={['ADMIN']}>
+              <AdminLayout>
+                <UsersPage />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute roles={['ADMIN']}>
+              <AdminLayout>
+                <DashboardPage />
+              </AdminLayout>
             </ProtectedRoute>
           }
         />

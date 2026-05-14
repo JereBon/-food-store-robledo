@@ -61,11 +61,15 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
   }
 
   const stockLabel = useMemo(() => {
-    if (product.stock <= 0) return 'Sin stock'
+    if (product.stock <= 0) return null
     if (maxAddable <= 0) {
-      return `Solo hay ${product.stock} unidades en stock (ya tenés ${currentInCart} en el carrito)`
+      if (currentInCart === 1) return 'Ya tenés 1 en tu carrito'
+      return `Ya tenés ${currentInCart} en tu carrito`
     }
-    if (maxAddable < 5) return `Solo quedan ${maxAddable} disponibles`
+    if (maxAddable < 5) {
+      if (maxAddable === 1) return '¡Última 1 unidad!'
+      return `¡Últimas ${maxAddable} unidades!`
+    }
     return null
   }, [product.stock, maxAddable, currentInCart])
 
@@ -89,9 +93,6 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
         </button>
         {outOfStockMsg && (
           <p className="text-xs text-red-600 mt-1">{outOfStockMsg}</p>
-        )}
-        {stockLabel && !outOfStockMsg && product.stock > 0 && (
-          <p className="text-xs text-orange-600 mt-1">{stockLabel}</p>
         )}
       </div>
     )
@@ -129,7 +130,7 @@ export function AddToCartButton({ product, variant = 'card' }: AddToCartButtonPr
       </div>
 
       {maxAddable > 0 && maxAddable < 5 && (
-        <p className="text-xs text-orange-600 mb-2">
+        <p className="text-xs text-red-600 font-medium mb-2 animate-pulse">
           {stockLabel}
         </p>
       )}

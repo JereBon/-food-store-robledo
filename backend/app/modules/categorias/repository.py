@@ -1,7 +1,7 @@
-from typing import Optional, List
+from typing import Any, Optional
 from datetime import datetime
 
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 
 from app.modules.categorias.model import Category
 from app.modules.productos.model import Product
@@ -24,12 +24,27 @@ class CategoryRepository:
         self.session.refresh(category)
         return category
 
-    def read_all(self, include_deleted: bool = False) -> List[Category]:
+    def read_all(self, include_deleted: bool = False) -> list[Category]:
         """Read all categories. By default excludes soft-deleted categories."""
         query = select(Category)
         if not include_deleted:
             query = query.where(Category.deleted_at.is_(None))
-        return self.session.exec(query).all()
+        return list(self.session.exec(query).all())
+
+    def read_all_paginated(
+        self, skip: int = 0, limit: int = 20, include_deleted: bool = False
+    ) -> tuple[list[Category], int]:
+        """Read categories with pagination. Returns (items, total)."""
+        base = select(Category)
+        if not include_deleted:
+            base = base.where(Category.deleted_at.is_(None))
+
+        count_stmt = select(func.count()).select_from(base.subquery())
+        total = self.session.exec(count_stmt).one()
+
+        query = base.offset(skip).limit(limit).order_by(Category.name)
+        items = list(self.session.exec(query).all())
+        return items, total
 
     def get_by_id(self, category_id: int, include_deleted: bool = False) -> Optional[Category]:
         """Get category by ID."""

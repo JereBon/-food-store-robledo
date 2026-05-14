@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useIngredients, useCreateIngredient, useUpdateIngredient, useDeleteIngredient, useRestoreIngredient } from '@/features/ingredients/api'
+import { useIngredientsPaginated, useCreateIngredient, useUpdateIngredient, useDeleteIngredient, useRestoreIngredient } from '@/features/ingredients/api'
 
 export function IngredientListPage() {
   const [showForm, setShowForm] = useState(false)
@@ -9,8 +9,12 @@ export function IngredientListPage() {
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const [skip, setSkip] = useState(0)
+  const limit = 10
 
-  const { data: ingredients = [], isLoading, error } = useIngredients({ include_deleted: includeDeleted })
+  const { data, isLoading, error } = useIngredientsPaginated(includeDeleted, skip, limit)
+  const ingredients = data?.items ?? []
+  const total = data?.total ?? 0
   const createMutation = useCreateIngredient()
   const updateMutation = useUpdateIngredient()
   const deleteMutation = useDeleteIngredient()
@@ -59,7 +63,7 @@ export function IngredientListPage() {
             <input
               type="checkbox"
               checked={includeDeleted}
-              onChange={(e) => setIncludeDeleted(e.target.checked)}
+              onChange={(e) => { setIncludeDeleted(e.target.checked); setSkip(0) }}
               className="h-4 w-4"
             />
             Mostrar ingredientes eliminados
@@ -183,6 +187,31 @@ export function IngredientListPage() {
 
       {!isLoading && ingredients.length === 0 && (
         <p className="text-center py-8 text-gray-500">No hay ingredientes a&uacute;n.</p>
+      )}
+
+      {/* Pagination */}
+      {total > limit && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">
+            Mostrando {skip + 1} - {Math.min(skip + limit, total)} de {total}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSkip(Math.max(0, skip - limit))}
+              disabled={skip <= 0}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setSkip(skip + limit)}
+              disabled={skip + limit >= total}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
