@@ -11,4 +11,4 @@
 | **us-006-pedidos** | EPIC 09 & 10 (Sprint 5) | [cite_start]Validación de disponibilidad y creación atómica de pedidos con Snapshots (UoW). [cite: 2082, 2083] | ✅ Completado |
 | **us-009-direcciones**| EPIC 07 (Sprint 4) | [cite_start]CRUD de direcciones de entrega, selección de dirección predeterminada, soft-delete con recuperación. | ✅ Completado (incluido en US-006) |
 | **us-007-pagos-mp** | EPIC 11 & 12 (Sprint 6) | Integración MercadoPago, webhooks IPN, Máquina de Estados (FSM) del pedido y páginas de resultado de pago. | ✅ Completado |
-| **us-008-admin** | EPIC 15, 16, 17 (Sprint 8)| [cite_start]Panel de administración, métricas con recharts y gestión de usuarios. [cite: 2090, 2091, 2092] | 📝 Pendiente |
+| **us-008-admin | EPIC 15, 16, 17 (Sprint 8) | Panel de administraci�n, m�tricas con recharts, gesti�n de usuarios, expansi�n RBAC y correcciones de flujo de compra. | ? Completado |
