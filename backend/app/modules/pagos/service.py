@@ -50,7 +50,7 @@ class PagoService:
         if not items_mp:
             items_mp = [{"title": "Pedido", "quantity": 1, "unit_price": float(pedido.total), "currency_id": "ARS"}]
 
-        is_local = "localhost" in settings.backend_url or "localhost" in settings.frontend_url
+        is_local = "localhost" in settings.backend_url
 
         if is_local:
             # Auto-confirm order in dev mode: PENDIENTE ⟶ CONFIRMADO + decrement stock
@@ -83,9 +83,9 @@ class PagoService:
             "items": items_mp,
             "external_reference": str(pedido.id),
             "back_urls": {
-                "success": f"{settings.frontend_url}/pago/exito",
-                "pending": f"{settings.frontend_url}/pago/pendiente",
-                "failure": f"{settings.frontend_url}/pago/fallo",
+                "success": f"{settings.backend_url}/pago/exito",
+                "pending": f"{settings.backend_url}/pago/pendiente",
+                "failure": f"{settings.backend_url}/pago/fallo",
             },
             "auto_return": "approved",
             "notification_url": f"{settings.backend_url}/api/v1/pagos/webhook",
